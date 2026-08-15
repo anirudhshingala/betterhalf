@@ -4,8 +4,10 @@ Personal pages served under the `/betterhalf/` path.
 
 ```
 .
-├── bday/          → /betterhalf/bday/   — Jetakshi's birthday keepsake
-└── .nojekyll         stops GitHub Pages running Jekyll over the files
+├── index.html     redirects the bare domain → bday/
+├── bday/          Jetakshi's birthday keepsake
+├── CNAME          betterhalf.anirudhshingala.com
+└── .nojekyll      stops GitHub Pages running Jekyll over the files
 ```
 
 Each subfolder is a self-contained static site with no build step. Open the
@@ -15,24 +17,38 @@ one you want and read its own README.
 
 ## Where it's served
 
-GitHub Pages maps **one repository to one path segment**, which is why the
-site lives in a `bday/` subfolder of a repo named `betterhalf` rather than in
-a repo of its own:
-
 | | |
 |---|---|
 | Repo | [`anirudhshingala/betterhalf`](https://github.com/anirudhshingala/betterhalf) |
-| GitHub Pages | <https://anirudhshingala.github.io/betterhalf/bday/> |
-| Intended custom-domain path | `https://anirudhshingala.com/betterhalf/bday/` |
+| **Live** | <https://betterhalf.anirudhshingala.com/bday/> |
+| Bare domain | <https://betterhalf.anirudhshingala.com/> → redirects to `/bday/` |
+| GitHub Pages origin | `anirudhshingala.github.io/betterhalf/` (301s to the custom domain) |
 
-> The custom-domain path needs a Cloudflare route — `anirudhshingala.com`
-> currently belongs to the `my-profile-website` repo, and GitHub does not
-> automatically nest other repos underneath a *project* site's custom domain.
-> See **Custom domain** in [`bday/README.md`](bday/README.md).
+### Why a subdomain rather than `anirudhshingala.com/betterhalf/bday/`
+
+GitHub only nests project repos underneath a custom domain when that domain
+sits on a **user site** (`<user>.github.io`). There is no such repo here —
+`anirudhshingala.com` belongs to `my-profile-website`, which is itself a
+*project* site. Serving this repo under that path would have meant either a
+Cloudflare Worker proxying `/betterhalf/*`, or folding these files into the
+portfolio repo. A subdomain is one DNS record and touches nothing else.
+
+### DNS
+
+One record in Cloudflare, **DNS-only (grey cloud)**:
+
+```
+CNAME   betterhalf   →   anirudhshingala.github.io
+```
+
+Grey cloud matters. Proxying (orange) hides the record from GitHub's
+verification, so GitHub cannot issue the Let's Encrypt certificate and
+*Enforce HTTPS* stays greyed out. Leave it unproxied at least until the
+certificate is issued.
 
 Every path inside each subfolder is **relative**, so the same files work
 unchanged from `file://`, from `localhost`, from the `github.io` URL, and from
-any custom-domain path — no rebuild, no config switch.
+the custom domain — no rebuild, no config switch.
 
 ---
 

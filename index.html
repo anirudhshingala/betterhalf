@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+  Root of the `betterhalf` repo.
+
+  The repo holds one site per subfolder, so this file exists only so that the
+  bare domain does not 404. Anyone landing on betterhalf.anirudhshingala.com
+  is sent straight to /bday/.
+
+  Three redirect mechanisms, in order of how fast they fire:
+    1. <meta refresh> — works with JavaScript disabled
+    2. location.replace — instant, and leaves no history entry to trap the
+       back button in a redirect loop
+    3. a plain link — the last resort if both are blocked
+  The target is relative, so this works on github.io and on the custom
+  domain without modification.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="0; url=bday/" />
+  <link rel="canonical" href="bday/" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%88%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(120% 90% at 50% 30%, #2b1b45, #0a0a1f 70%);
+      color: #fdf6ee;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    p { margin: 0 0 1rem; font-size: 1.4rem; font-weight: 300; opacity: 0.85; }
+    a {
+      color: #f3d998;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+      text-decoration: none;
+      padding-bottom: 2px;
+    }
+    a:hover { border-bottom-color: #f3d998; }
+  </style>
+</head>
+<body>
+  <div>
+    <p>Taking you there&hellip;</p>
+    <a href="bday/">Continue &rarr;</a>
+  </div>
+  <script>location.replace('bday/');</script>
+</body>
+</html>
