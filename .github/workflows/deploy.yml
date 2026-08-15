@@ -1,0 +1,55 @@
+# ==============================================================================
+# Deploy the site to GitHub Pages.
+# ------------------------------------------------------------------------------
+# This is OPTIONAL. The project is plain static files, so the simpler
+# "Settings → Pages → Deploy from a branch" option works just as well.
+#
+# To use this workflow instead:
+#   Settings → Pages → Build and deployment → Source: "GitHub Actions"
+#
+# There is no build step — the repository root is uploaded verbatim.
+# ==============================================================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Lets you re-deploy by hand from the Actions tab.
+  workflow_dispatch:
+
+# Minimum permissions the deploy-pages action needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue instead, and don't cancel one mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # No build output directory — the site is the repo root.
+          path: '.'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

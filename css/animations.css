@@ -1,0 +1,357 @@
+/* ==========================================================================
+   animations.css — every keyframe and motion state in one place
+   --------------------------------------------------------------------------
+   Design rules followed throughout:
+     • Only `transform`, `opacity` and `filter` are animated (compositor-only,
+       so nothing triggers layout).
+     • Each moving element gets its own transform axis via nesting, so two
+       animations never fight over the same property.
+     • The whole file degrades to "no motion" under
+       `prefers-reduced-motion: reduce` — see the block at the very bottom.
+
+   Contents
+     01. Entrance / scroll reveal
+     02. Hero
+     03. Balloons
+     04. Ambient background
+     05. Buttons & micro-interactions
+     06. Countdown
+     07. Invitation
+     08. Overlays
+     09. Music toggle
+     10. Reduced motion
+   ========================================================================== */
+
+
+/* ==========================================================================
+   01. ENTRANCE / SCROLL REVEAL
+   The hidden start state is scoped to `html.js` so that with JavaScript
+   disabled every section renders normally instead of staying invisible.
+   ========================================================================== */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 900ms var(--ease-out),
+    transform 900ms var(--ease-out);
+}
+
+.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger children of a revealed group by index (set in js/reveal.js). */
+.js [data-reveal] { transition-delay: calc(var(--reveal-delay, 0) * 90ms); }
+
+
+/* ==========================================================================
+   02. HERO
+   ========================================================================== */
+
+/* Sequenced entrance for the five hero rows. Pure CSS so it fires the
+   instant the page paints, with or without GSAP. */
+.js [data-hero] {
+  opacity: 0;
+  animation: hero-in 1100ms var(--ease-out) forwards;
+}
+.js [data-hero="1"] { animation-delay: 180ms; }
+.js [data-hero="2"] { animation-delay: 380ms; }
+.js [data-hero="3"] { animation-delay: 700ms; }
+.js [data-hero="4"] { animation-delay: 950ms; }
+.js [data-hero="5"] { animation-delay: 1250ms; }
+
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(34px) scale(0.985); filter: blur(6px); }
+  to   { opacity: 1; transform: none;                          filter: blur(0); }
+}
+
+/* Travelling highlight across the gold-foil name. */
+.shimmer {
+  animation: shimmer-travel 7s linear infinite;
+}
+@keyframes shimmer-travel {
+  from { background-position: 0% 50%; }
+  to   { background-position: 260% 50%; }
+}
+
+/* The heart beats, slightly off a round number so it never feels metronomic. */
+.hero__heart {
+  animation: heartbeat 2.3s var(--ease-soft) infinite;
+  transform-origin: center;
+}
+@keyframes heartbeat {
+  0%, 100%  { transform: scale(1); }
+  14%       { transform: scale(1.22); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.14); }
+  56%       { transform: scale(1); }
+}
+
+/* Scroll hint: the wheel dot drifts down and fades. */
+.hero__mouse span { animation: mouse-drift 2s var(--ease-soft) infinite; }
+@keyframes mouse-drift {
+  0%        { transform: translateY(0);    opacity: 0; }
+  22%       { opacity: 1; }
+  75%, 100% { transform: translateY(15px); opacity: 0; }
+}
+
+/* The hero gives a small "handing you over" dip as the story unfolds, then
+   settles back — it stays on the page so you can always scroll home. */
+.hero.is-lifted { animation: hero-handoff 1100ms var(--ease-out); }
+@keyframes hero-handoff {
+  0%   { transform: none;                          filter: blur(0); }
+  40%  { transform: translateY(-14px) scale(0.985); filter: blur(1.5px); }
+  100% { transform: none;                          filter: blur(0); }
+}
+
+/* The story unfurling after "Click to Open Our Story". */
+.story.is-opening { animation: story-open 1000ms var(--ease-out); }
+@keyframes story-open {
+  0%   { opacity: 0; transform: translateY(48px) scale(0.99); }
+  100% { opacity: 1; transform: none; }
+}
+
+
+/* ==========================================================================
+   03. BALLOONS
+   Three stacked transforms, one per element (see .balloon in main.css):
+     rise (Y) → sway (X) → bob/tilt (rotate)
+   Every duration/offset arrives as a CSS custom property set by
+   js/balloons.js, so no two balloons share a rhythm.
+   ========================================================================== */
+.balloon {
+  animation: balloon-rise var(--rise, 26s) linear var(--delay, 0s) forwards;
+}
+@keyframes balloon-rise {
+  0%   { transform: translate3d(0, 0, 0);                opacity: 0; }
+  8%   {                                                 opacity: var(--peak, 0.75); }
+  88%  {                                                 opacity: var(--peak, 0.75); }
+  100% { transform: translate3d(0, calc(-100vh - 34vh), 0); opacity: 0; }
+}
+
+.balloon__sway {
+  animation: balloon-sway var(--sway, 7s) var(--ease-soft) var(--delay, 0s) infinite alternate;
+}
+@keyframes balloon-sway {
+  from { transform: translateX(calc(var(--drift, 26px) * -1)); }
+  to   { transform: translateX(var(--drift, 26px)); }
+}
+
+.balloon__body {
+  animation: balloon-bob var(--bob, 4.5s) var(--ease-soft) var(--delay, 0s) infinite alternate;
+}
+@keyframes balloon-bob {
+  from { transform: rotate(calc(var(--tilt, 5deg) * -1)); }
+  to   { transform: rotate(var(--tilt, 5deg)); }
+}
+
+/* Confetti-time: every balloon on screen gets a brief excited wobble. */
+.balloon-layer.is-celebrating .balloon__body {
+  animation-duration: 0.55s;
+}
+
+
+/* ==========================================================================
+   04. AMBIENT BACKGROUND
+   ========================================================================== */
+
+/* A very slow parallax-ish crawl keeps the gradient field alive without
+   ever drawing attention to itself. */
+.bg-aurora {
+  animation: aurora-drift 34s var(--ease-soft) infinite alternate;
+}
+@keyframes aurora-drift {
+  from { transform: translate3d(-2%, -1.5%, 0) scale(1.05) rotate(0deg); }
+  to   { transform: translate3d(2.5%, 2%, 0)  scale(1.14) rotate(3deg); }
+}
+
+
+/* ==========================================================================
+   05. BUTTONS & MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* The hero CTA breathes, plus emits an expanding halo ring. */
+.btn--pulse { animation: cta-breathe 2.8s var(--ease-soft) infinite; }
+@keyframes cta-breathe {
+  0%, 100% { box-shadow: var(--shadow-md), 0 0 24px rgba(255, 143, 171, 0.40); }
+  50%      { box-shadow: var(--shadow-lg), 0 0 52px rgba(255, 143, 171, 0.78); }
+}
+
+.btn--pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 214, 224, 0.65);
+  animation: cta-ring 2.8s var(--ease-out) infinite;
+  pointer-events: none;
+}
+@keyframes cta-ring {
+  0%   { transform: scale(1);    opacity: 0.7; }
+  70%  { transform: scale(1.28); opacity: 0; }
+  100% { transform: scale(1.28); opacity: 0; }
+}
+
+/* Celebratory kick when the "No" button flips to "Yes!". */
+.btn--tiny.is-converting { animation: convert-pop 620ms var(--ease-out); }
+@keyframes convert-pop {
+  0%   { transform: scale(1)    rotate(0deg); }
+  30%  { transform: scale(0.86) rotate(-4deg); }
+  60%  { transform: scale(1.16) rotate(3deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+
+/* Applied to a winning RSVP button the moment it is pressed. */
+.btn.is-won { animation: won-pop 700ms var(--ease-out); }
+@keyframes won-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+
+/* ==========================================================================
+   06. COUNTDOWN
+   ========================================================================== */
+
+/* Each digit group flashes as its value changes (class toggled in
+   js/countdown.js). transform-origin keeps the pulse centred. */
+.countdown__value.is-tick { animation: digit-tick 520ms var(--ease-out); }
+@keyframes digit-tick {
+  0%   { transform: translateY(0)     scale(1);    filter: brightness(1); }
+  22%  { transform: translateY(-5px)  scale(1.07); filter: brightness(1.45); }
+  100% { transform: translateY(0)     scale(1);    filter: brightness(1); }
+}
+
+/* Gold sweep across the numerals. */
+.countdown__value {
+  animation: gold-sweep 6s linear infinite;
+}
+.section__title em,
+.invite__script {
+  animation: gold-sweep 9s linear infinite;
+}
+@keyframes gold-sweep {
+  from { background-position: 0% 50%; }
+  to   { background-position: 200% 50%; }
+}
+
+
+/* ==========================================================================
+   07. INVITATION
+   ========================================================================== */
+
+/* Slow shifting foil edge. */
+.invite { animation: foil-shift 12s var(--ease-soft) infinite alternate; }
+@keyframes foil-shift {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 100%; }
+}
+
+/* The bloom behind the card breathes with it. */
+.invite__foil { animation: foil-bloom 6s var(--ease-soft) infinite alternate; }
+@keyframes foil-bloom {
+  from { opacity: 0.55; transform: scale(0.96); }
+  to   { opacity: 1;    transform: scale(1.04); }
+}
+
+/* Wax seal settles into place when the card is revealed. */
+.invite.is-revealed .invite__seal {
+  animation: seal-stamp 700ms var(--ease-out) 520ms backwards;
+}
+@keyframes seal-stamp {
+  0%   { transform: translateX(-50%) rotate(-30deg) scale(2.1); opacity: 0; }
+  60%  { transform: translateX(-50%) rotate(-4deg)  scale(0.92); opacity: 1; }
+  100% { transform: translateX(-50%) rotate(-8deg)  scale(1);    opacity: 1; }
+}
+
+
+/* ==========================================================================
+   08. OVERLAYS
+   ========================================================================== */
+.modal:not([hidden]) .modal__scrim { animation: fade-in 260ms var(--ease-out); }
+.modal:not([hidden]) .modal__card  { animation: modal-in 480ms var(--ease-out); }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes modal-in {
+  0%   { opacity: 0; transform: translateY(26px) scale(0.9)  rotate(-2deg); }
+  55%  { opacity: 1; transform: translateY(-6px) scale(1.03) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* The 404 emoji gives a little "nope" shake. */
+.modal:not([hidden]) .modal__emoji { animation: nope-shake 900ms var(--ease-out) 300ms; }
+@keyframes nope-shake {
+  0%, 100%       { transform: rotate(0deg); }
+  15%, 45%, 75%  { transform: rotate(-13deg); }
+  30%, 60%, 90%  { transform: rotate(13deg); }
+}
+
+.lightbox:not([hidden]) .lightbox__scrim  { animation: fade-in 220ms var(--ease-out); }
+.lightbox:not([hidden]) .lightbox__figure { animation: lightbox-in 420ms var(--ease-out); }
+@keyframes lightbox-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Success card after a winning RSVP. */
+.rsvp-success:not([hidden]) { animation: modal-in 620ms var(--ease-out); }
+.rsvp-success__mark         { animation: heartbeat 1.9s var(--ease-soft) infinite; }
+
+
+/* ==========================================================================
+   09. MUSIC TOGGLE
+   Bars are frozen at rest and only dance while audio is actually playing.
+   ========================================================================== */
+.music-toggle__icon i { transition: height 200ms var(--ease-out); }
+
+.music-toggle.is-playing .music-toggle__icon i {
+  animation: eq-bar 900ms var(--ease-soft) infinite alternate;
+}
+.music-toggle.is-playing .music-toggle__icon i:nth-child(1) { animation-delay: 0ms; }
+.music-toggle.is-playing .music-toggle__icon i:nth-child(2) { animation-delay: 160ms; }
+.music-toggle.is-playing .music-toggle__icon i:nth-child(3) { animation-delay: 320ms; }
+.music-toggle.is-playing .music-toggle__icon i:nth-child(4) { animation-delay: 480ms; }
+
+@keyframes eq-bar {
+  from { height: 3px; }
+  to   { height: 15px; }
+}
+
+
+/* ==========================================================================
+   10. REDUCED MOTION
+   Respect the OS-level preference: hold every decorative animation on its
+   final frame and reduce transitions to near-instant. Content still reveals
+   — it simply appears instead of sliding.
+   Note: js/balloons.js and js/particles.js check the same media query and
+   skip spawning entirely, so this block is a belt-and-braces fallback.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Make sure nothing is stranded in a hidden start state. */
+  .js [data-reveal],
+  .js [data-hero] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .balloon-layer,
+  #particle-canvas { display: none; }
+
+  .btn--pulse::after { display: none; }
+}

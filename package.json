@@ -1,0 +1,20 @@
+{
+  "name": "jetakshi-birthday",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An animated single-page birthday keepsake and evening invitation for Jetakshi.",
+  "keywords": [
+    "birthday",
+    "invitation",
+    "animation",
+    "static-site",
+    "github-pages"
+  ],
+  "license": "MIT",
+  "comment": "There are no dependencies and no build step. These scripts are convenience wrappers around whichever static server you already have.",
+  "scripts": {
+    "start": "npx --yes serve . -l 8080",
+    "serve": "npx --yes serve . -l 8080",
+    "start:python": "python -m http.server 8080"
+  }
+}

@@ -1,0 +1,27 @@
+# ── OS cruft ────────────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# ── Editors ─────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# ── Node (only ever created by `npx serve`; there are no real dependencies) ──
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm/
+package-lock.json
+
+# ── Logs & temp ─────────────────────────────────────────────────────────────
+*.log
+.tmp/
+
+# NOTE: assets/ is intentionally NOT ignored.
+# The photos have to be committed for GitHub Pages to serve them.
