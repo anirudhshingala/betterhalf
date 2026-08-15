@@ -122,6 +122,8 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     { src: 'assets/jetakshi-05.jpg', w: 686,  h: 1260, caption: 'This one' },
     { src: 'assets/jetakshi-06.jpg', w: 832,  h: 1440, caption: 'Always' },
     { src: 'assets/jetakshi-07.jpg', w: 586,  h: 979,  caption: 'Here’s to many more' },
+    // The odd one out shape-wise — which the masonry handles without a fuss.
+    { src: 'assets/jetakshi-08.jpg', w: 462,  h: 412,  caption: 'Us, exactly as we are' },
   ],
 
   /* ── Optional background music ────────────────────────────────────────
