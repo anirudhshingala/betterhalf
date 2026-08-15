@@ -58,18 +58,17 @@ window.BIRTHDAY_CONFIG = Object.freeze({
   gate: {
     enabled: true,
 
-    /* ══════════════════════════════════════════════════════════════════
-       ⚠️  CURRENTLY TRUE — THE LIVE SITE IS WIDE OPEN  ⚠️
-       ══════════════════════════════════════════════════════════════════
-       Temporarily unlocked for mobile testing on the real URL.
+    /* ── THE MASTER OVERRIDE ───────────────────────────────────────────
+       false = the countdown is live and she sees the lock screen.
 
-       ***  SET THIS BACK TO false TO RESTORE THE COUNTDOWN.  ***
+       Flip to `true` to force the full site open EVERYWHERE, deployed URL
+       included — useful for testing on a real phone. It shouts in the
+       browser console the whole time it is on, because an open gate left
+       behind after testing spends the entire surprise silently.
 
-       That is the only change needed — nothing else about the gate was
-       touched. While this is true, anyone who opens
-       betterhalf.anirudhshingala.com sees the whole site immediately,
-       and the browser console warns on every load.                      */
-    bypass: true,
+       Prefer `?preview=1` on the URL for a quick look: it opens the site
+       for you without unlocking it for anyone else.                      */
+    bypass: false,
 
     /* Treat localhost / 127.0.0.1 / file:// as "I am the developer".
        Currently ON: the full site opens straight away on your machine,
