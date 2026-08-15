@@ -194,13 +194,12 @@
   100% { transform: scale(1.28); opacity: 0; }
 }
 
-/* Celebratory kick when the "No" button flips to "Yes!". */
-.btn--tiny.is-converting { animation: convert-pop 620ms var(--ease-out); }
-@keyframes convert-pop {
-  0%   { transform: scale(1)    rotate(0deg); }
-  30%  { transform: scale(0.86) rotate(-4deg); }
-  60%  { transform: scale(1.16) rotate(3deg); }
-  100% { transform: scale(1)    rotate(0deg); }
+/* The "No" button gets a nervous jitter the moment it is about to bolt.
+   Kept short so it never fights the inline transform that moves it. */
+.rsvp__no.is-flying { animation: no-jitter 2.4s var(--ease-soft) infinite; }
+@keyframes no-jitter {
+  0%, 100% { filter: none; }
+  50%      { filter: brightness(1.18); }
 }
 
 /* Applied to a winning RSVP button the moment it is pressed. */

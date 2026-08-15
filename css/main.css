@@ -447,30 +447,6 @@ code {
 
 .btn--sm { padding: 0.7rem 1.5rem; font-size: 0.9rem; }
 
-/* Tiny — the deliberately unappealing "No". */
-.btn--tiny {
-  padding: 0.4rem 1rem;
-  font-size: 0.78rem;
-  font-weight: 400;
-  color: var(--text-faint);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--hairline-soft);
-  opacity: 0.7;
-}
-.btn--tiny:hover { color: var(--text-muted); opacity: 1; }
-
-/* Once defeated, the "No" button graduates into a real choice. */
-.btn--tiny.is-converted {
-  padding: 0.95rem 2.1rem;
-  font-size: clamp(0.92rem, 1.6vw, 1.02rem);
-  font-weight: 600;
-  opacity: 1;
-  color: #2a0d16;
-  background: var(--grad-rose);
-  border-color: transparent;
-  box-shadow: var(--shadow-md), var(--glow-rose);
-}
-
 
 /* ==========================================================================
    06. SECTION SCAFFOLDING
@@ -680,6 +656,25 @@ body.is-locked .skip-link { display: none; }
   color: var(--text-muted);
   font-size: clamp(0.98rem, 2.1vw, 1.16rem);
   font-weight: 300;
+}
+
+/* The sign-off drops to its own line so it reads as a signature under the
+   sentence rather than trailing off the end of it. */
+.hero__signoff {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 0.95em;
+  color: var(--text-faint);
+}
+.hero__signature {
+  font-family: var(--font-script);
+  font-size: 1.55em;
+  /* Script faces sit high on the baseline; nudge it back down to sit level
+     with the words either side. */
+  vertical-align: -0.14em;
+  padding: 0 0.06em;
+  color: var(--rose-gold);
+  text-shadow: 0 0 22px rgba(232, 180, 160, 0.4);
 }
 
 .hero__cta { display: flex; justify-content: center; }
@@ -1456,6 +1451,57 @@ body.is-locked .skip-link { display: none; }
 }
 .rsvp[hidden] { display: none; }
 
+/* ── The "No" that runs away ──────────────────────────────────────────
+   The slot reserves the button's footprint. js/rsvp.js pins its width and
+   height at the moment the button goes position:fixed, so the row keeps
+   its shape instead of collapsing when the button bolts. */
+.rsvp__no-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rsvp__no {
+  padding: 0.72rem 1.7rem;
+  font-size: clamp(0.86rem, 1.5vw, 0.95rem);
+  font-weight: 400;
+  color: var(--text-muted);
+  /* Kills the 300ms tap delay and stops a double-tap zooming the page when
+     she jabs at it repeatedly — which is exactly what this button invites. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Quieter than the gold button — it should read as the lesser option
+     right up until it turns out not to be an option at all. */
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid var(--hairline-soft);
+}
+
+/* Airborne. `transform` is set inline by JS, which also wins over the
+   .btn:hover lift — this button must never look like it responds to
+   hover, only like it is escaping. */
+.rsvp__no.is-flying {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 135;
+  margin: 0;
+  cursor: not-allowed;
+  white-space: nowrap;
+  will-change: transform;
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow var(--dur) var(--ease-out);
+  box-shadow: var(--shadow-md), 0 0 26px rgba(255, 143, 171, 0.28);
+}
+
+/* No sheen sweep and no lift while fleeing — both read as "interactive". */
+.rsvp__no.is-flying:hover { transform: none; }
+.rsvp__no .btn__glow { display: none; }
+
+/* prefers-reduced-motion, or flee disabled in config: it stays put and is
+   simply inert. Still not a real choice. */
+.rsvp__no.is-static { cursor: not-allowed; }
+
 .rsvp-success {
   text-align: center;
   padding: clamp(2rem, 6vw, 3.2rem) clamp(1.2rem, 4vw, 2.4rem);
@@ -1696,7 +1742,9 @@ body.is-locked .skip-link { display: none; }
   .countdown__sep { display: none; }
   .countdown__unit { flex: none; }
   .rsvp { flex-direction: column; }
-  .rsvp .btn { width: 100%; }
+  /* The fleeing "No" is excluded: once it goes position:fixed a 100% width
+     would stretch it across the whole viewport. */
+  .rsvp .btn:not(.rsvp__no) { width: 100%; }
 
   /* Invitation details stack; the separator moves from left edge to top. */
   .invite__details { grid-template-columns: 1fr; }
@@ -1764,11 +1812,11 @@ body.is-locked .skip-link { display: none; }
   .btn:active { transform: scale(0.97); }
   .gallery-item:active { transform: scale(0.985); }
 
-  /* The tiny "No" is a joke, but it still has to be tappable. Apple and
-     Google both put the floor at 44px; the visual size is unchanged. */
-  .btn--tiny {
+  /* The "No" is a joke, but a tap still has to register in order to make it
+     bolt. Apple and Google both put the target floor at 44px. */
+  .rsvp__no {
     min-height: 44px;
-    padding-inline: 1.4rem;
+    padding-inline: 1.5rem;
   }
 
   /* Comfortable thumb targets in the photo viewer. */

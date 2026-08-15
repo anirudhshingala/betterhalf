@@ -184,6 +184,9 @@
 
         <p class="hero__sub" data-hero="3">
           A little corner of the internet, built entirely for you.
+          <span class="hero__signoff">
+            it&rsquo;s me &mdash; your <span class="hero__signature">Anirudh</span> ❤️
+          </span>
         </p>
 
         <div class="hero__cta" data-hero="4">
@@ -410,21 +413,29 @@
           </header>
 
           <div class="rsvp" id="rsvp-choices" data-reveal>
-            <button class="btn btn--primary rsvp__yes" type="button" data-rsvp="yes">
-              <span class="btn__label">Yes, I&rsquo;ll Be There!</span>
-              <span class="btn__glow" aria-hidden="true"></span>
-            </button>
-
             <button class="btn btn--gold rsvp__yes" type="button" data-rsvp="definitely">
               <span class="btn__label">Definitely, Yes! 😍</span>
               <span class="btn__glow" aria-hidden="true"></span>
             </button>
 
-            <!-- The tiny "No". Hovering *or* clicking it fires the 404 modal,
-                 after which its label is permanently rewritten to "Yes!". -->
-            <button class="btn btn--tiny rsvp__no" type="button" id="rsvp-no" data-rsvp="no">
-              <span class="btn__label" id="rsvp-no-label">No</span>
-            </button>
+            <!-- The "No" that cannot be caught.
+                 The slot holds its footprint so the row does not lurch when
+                 the button leaves the flow and goes position:fixed on its
+                 first escape. Sized once, in js/rsvp.js. -->
+            <span class="rsvp__no-slot" id="rsvp-no-slot">
+              <button class="btn btn--ghost rsvp__no" type="button" id="rsvp-no"
+                      aria-hidden="true" tabindex="-1">
+                <span class="btn__label" id="rsvp-no-label">No</span>
+              </button>
+            </span>
+
+            <!-- A fleeing button is meaningless to a screen reader and a trap
+                 for keyboard users, so it is removed from the accessibility
+                 tree entirely and described here instead. -->
+            <p class="sr-only">
+              There is also a &ldquo;No&rdquo; button, but it runs away from the
+              cursor and cannot be clicked. Saying yes is the only option.
+            </p>
           </div>
 
           <!-- Success state, revealed after any winning answer. -->
@@ -443,7 +454,7 @@
 
       <footer class="footer">
         <p class="footer__line">
-          Made with far too much love (and a little JavaScript) &mdash; for
+          Made with far too much love &mdash; for
           <span class="footer__name">Jetakshi</span>.
         </p>
         <p class="footer__meta">24 August &nbsp;·&nbsp; 7:30 PM &nbsp;·&nbsp; Just me and you</p>

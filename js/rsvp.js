@@ -17,7 +17,7 @@
 window.RSVP = (function () {
   'use strict';
 
-  const { $, $$, el, rand, pulseClass, trapFocus, prefersReducedMotion } = window.BD;
+  const { $, $$, el, rand, clamp, pulseClass, trapFocus, prefersReducedMotion } = window.BD;
 
   let cfg = null;
   let noButton = null;
@@ -195,31 +195,242 @@ window.RSVP = (function () {
     if (noButton) noButton.focus();
   }
 
+  /* ══════════════════════════════════════════════════════════════════════
+     THE "NO" BUTTON THAT CANNOT BE CAUGHT
+     ══════════════════════════════════════════════════════════════════════
+     Two layers of evasion, because one is not enough:
+
+       1. pointerenter — it bolts the instant the cursor touches it.
+       2. a document-level pointermove proximity check — a fast enough flick
+          of the mouse can jump the cursor *over* the gap between frames and
+          land inside the button without ever firing pointerenter. The radius
+          check closes that hole, so the button is genuinely uncatchable
+          rather than merely difficult.
+
+     It also never lands within `safeDistance` of the cursor, so it cannot
+     accidentally teleport underneath the pointer and get clicked.
+
+     Touch devices have no hover, so pointerdown moves it before the tap can
+     resolve into a click — and click is preventDefault-ed regardless.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  let noCfg = null;
+  let slot = null;
+  let flying = false;      // has it left the document flow yet?
+  let escapes = 0;
+  let pos = { x: 0, y: 0 };
+
+  /** Lift the button out of the flow, leaving its footprint behind. */
+  function takeOff() {
+    const r = noButton.getBoundingClientRect();
+
+    // Freeze the gap it leaves so the row does not lurch sideways.
+    if (slot) {
+      slot.style.width = r.width + 'px';
+      slot.style.height = r.height + 'px';
+    }
+
+    // Start life at exactly the spot it already occupies, so the first
+    // move reads as the button bolting rather than teleporting.
+    pos = { x: r.left, y: r.top };
+    noButton.classList.add('is-flying');
+    applyPosition(0);
+    flying = true;
+  }
+
+  function applyPosition(tilt) {
+    // Inline transform, which also beats the .btn:hover lift in the
+    // stylesheet — the button must never appear to respond to hover.
+    noButton.style.transform =
+      'translate(' + Math.round(pos.x) + 'px,' + Math.round(pos.y) + 'px)' +
+      ' rotate(' + tilt.toFixed(1) + 'deg)';
+  }
+
   /**
-   * Fired by hovering *or* clicking "No".
-   * Runs exactly once: shows the modal, then rewrites the button to "Yes!".
+   * Pick somewhere new, keeping the whole button on screen and well clear
+   * of the cursor. Rejection-samples a handful of times, then falls back to
+   * the furthest of the candidates rather than looping forever.
    */
-  function defeatNo() {
-    if (noDefeated) return;
-    noDefeated = true;
+  function relocate(cursorX, cursorY) {
+    const w = noButton.offsetWidth;
+    const h = noButton.offsetHeight;
+    const margin = 14;
+    const maxX = Math.max(margin, window.innerWidth - w - margin);
+    const maxY = Math.max(margin, window.innerHeight - h - margin);
 
-    openModal();
+    let best = null;
+    let bestDist = -1;
 
-    // Rewrite the label slightly after the modal lands, so the transformation
-    // is visible behind the scrim rather than happening off-screen.
-    setTimeout(() => {
-      noLabel.textContent = 'Yes!';
-      noButton.classList.add('is-converted');
-      noButton.setAttribute('aria-label', 'Yes!');
-      pulseClass(noButton, 'is-converting', 900);
-    }, 650);
+    for (let i = 0; i < 24; i += 1) {
+      const x = rand(margin, maxX);
+      const y = rand(margin, maxY);
+      // Distance from the cursor to the button's centre at this candidate.
+      const dx = x + w / 2 - cursorX;
+      const dy = y + h / 2 - cursorY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > bestDist) {
+        bestDist = dist;
+        best = { x: x, y: y };
+      }
+      if (dist >= noCfg.safeDistance) break;
+    }
+
+    pos = best;
+    applyPosition(rand(-14, 14));
+  }
+
+  /** Timestamp of the last *counted* escape — see flee(). */
+  let lastCounted = 0;
+
+  /** One escape: move, then taunt. */
+  function flee(cursorX, cursorY) {
+    if (!flying) takeOff();
+
+    // Moving is never throttled. Whatever else happens, the button gets out
+    // of the way — that is the one guarantee this whole feature rests on.
+    relocate(cursorX, cursorY);
+
+    // Counting, however, is. A single approach usually trips both
+    // pointerenter *and* the proximity check, which would burn through the
+    // taunts two at a time and reach the punchline before she has read the
+    // first one. Only one escape per 250ms counts toward the script.
+    const now = Date.now();
+    if (now - lastCounted < 250) return;
+    lastCounted = now;
+    escapes += 1;
+
+    // Advance one line per escape, then hold on the last.
+    const taunts = noCfg.taunts || [];
+    if (taunts.length) {
+      noLabel.textContent = taunts[Math.min(escapes, taunts.length - 1)];
+    }
+
+    // Optional payoff for the truly persistent. Off by default: the modal's
+    // scrim covers the whole screen, which stops the chase dead just as it
+    // gets going, and the last taunt already makes the point.
+    if (noCfg.modalAfter && escapes === noCfg.modalAfter && !noDefeated) {
+      noDefeated = true;
+      openModal();
+    }
+  }
+
+  /** Proximity guard — closes the gap pointerenter can miss. */
+  function onPointerMove(e) {
+    if (!flying) return;
+
+    const r = noButton.getBoundingClientRect();
+    // Distance from the cursor to the nearest point of the button's box.
+    const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+    const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+
+    if (Math.sqrt(dx * dx + dy * dy) < noCfg.panicRadius) {
+      flee(e.clientX, e.clientY);
+    }
+  }
+
+  /**
+   * Put it back in its slot and reset the gag.
+   *
+   * Without this the button stays position:fixed forever: chase it, scroll
+   * away, and a floating "You can't say no to me!" now hovers over the photo
+   * gallery for the rest of the visit, intercepting taps meant for the page
+   * underneath. Landing it when the RSVP section leaves the viewport keeps
+   * the joke where it belongs — and resetting the taunts means it starts
+   * from "No" again next time she scrolls back, so the chase is repeatable.
+   */
+  function land() {
+    if (!flying) return;
+    flying = false;
+    escapes = 0;
+    lastCounted = 0;
+
+    noButton.classList.remove('is-flying');
+    noButton.style.transform = '';
+    if (slot) {
+      slot.style.width = '';
+      slot.style.height = '';
+    }
+    const taunts = noCfg.taunts || [];
+    if (taunts.length) noLabel.textContent = taunts[0];
+  }
+
+  /** Keep it on screen if the window is resized mid-chase. */
+  function onResize() {
+    if (!flying) return;
+    const w = noButton.offsetWidth;
+    const h = noButton.offsetHeight;
+    pos.x = clamp(pos.x, 14, Math.max(14, window.innerWidth - w - 14));
+    pos.y = clamp(pos.y, 14, Math.max(14, window.innerHeight - h - 14));
+    applyPosition(0);
+  }
+
+  function initNoButton() {
+    noCfg = (cfg.rsvp && cfg.rsvp.noButton) || {};
+    slot = $('#rsvp-no-slot');
+
+    if (!noButton) return;
+
+    // Whatever happens, this button never answers anything.
+    noButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (noCfg.flee !== false && !prefersReducedMotion()) {
+        flee(e.clientX, e.clientY);
+      } else if (!noDefeated) {
+        // Static fallback: no chase, just the punchline.
+        noDefeated = true;
+        openModal();
+      }
+    });
+
+    // A button that darts around the screen is exactly the kind of motion
+    // prefers-reduced-motion exists to prevent. Leave it put.
+    if (noCfg.flee === false || prefersReducedMotion()) {
+      noButton.classList.add('is-static');
+      return;
+    }
+
+    noButton.addEventListener('pointerenter', (e) => {
+      // A touch tap fires pointerenter *and* pointerdown back to back, which
+      // would spend two taunts on one tap. Touch is handled by pointerdown
+      // alone; this path is for real hovering.
+      if (e.pointerType === 'touch') return;
+      flee(e.clientX, e.clientY);
+    });
+
+    // Touch has no hover, so the tap is the trigger — but it must fire on
+    // `click`, NOT on pointerdown.
+    //
+    // Moving the button on pointerdown looks right and is quietly broken:
+    // the button is gone by the time the tap resolves, so the browser
+    // delivers the click to whatever is now underneath. On a narrow screen
+    // that is often the "Definitely, Yes!" button, and tapping No silently
+    // answers the RSVP. Waiting for click means the button is still under
+    // her finger when the tap lands, so its own handler swallows it.
+    //
+    // Not preventing default on pointerdown also leaves scroll gestures
+    // that happen to start on the button working normally.
+
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+
+    // Land it whenever the RSVP section is off screen, so a chased button
+    // never ends up floating over the rest of the page.
+    const section = document.getElementById('rsvp');
+    if (section && 'IntersectionObserver' in window) {
+      new IntersectionObserver(
+        (entries) => entries.forEach((en) => { if (!en.isIntersecting) land(); }),
+        { threshold: 0 }
+      ).observe(section);
+    }
   }
 
   /* ══════════════════════════════════════════════════════════════════════
      ANSWERING
      ══════════════════════════════════════════════════════════════════════ */
 
-  /** @param {'yes'|'definitely'|'no'} kind which button won */
+  /** @param {string} kind which button won — only 'definitely' exists today */
   function answer(kind, button) {
     if (button) pulseClass(button, 'is-won', 900);
 
@@ -231,7 +442,7 @@ window.RSVP = (function () {
     hasAnswered = true;
 
     successLine.textContent =
-      cfg.copy.rsvpSuccess[kind] || cfg.copy.rsvpSuccess.yes;
+      cfg.copy.rsvpSuccess[kind] || cfg.copy.rsvpSuccess.default;
 
     setTimeout(() => {
       choices.hidden = true;
@@ -264,27 +475,13 @@ window.RSVP = (function () {
       modalBody.textContent = cfg.copy.noButtonError.replace(/^Error 404:\s*/, '');
     }
 
-    /* ── The two honest "yes" buttons ─────────────────────────────── */
-    $$('[data-rsvp="yes"], [data-rsvp="definitely"]', choices).forEach((btn) => {
+    /* ── The one button that actually answers ─────────────────────── */
+    $$('[data-rsvp]', choices).forEach((btn) => {
       btn.addEventListener('click', () => answer(btn.dataset.rsvp, btn));
     });
 
-    /* ── The "No" button ──────────────────────────────────────────── */
-    if (noButton) {
-      // Hover (desktop) and focus (keyboard) both spring the trap.
-      noButton.addEventListener('mouseenter', defeatNo);
-      noButton.addEventListener('focus', defeatNo);
-
-      noButton.addEventListener('click', () => {
-        if (!noDefeated) {
-          // Touch devices never fire mouseenter — the tap does both jobs.
-          defeatNo();
-          return;
-        }
-        // Already converted: this is now a perfectly ordinary "Yes!".
-        answer('no', noButton);
-      });
-    }
+    /* ── The "No" that runs away ──────────────────────────────────── */
+    initNoButton();
 
     /* ── Modal dismissal ──────────────────────────────────────────── */
     if (modal) {

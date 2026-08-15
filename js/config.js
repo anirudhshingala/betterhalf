@@ -64,10 +64,17 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     bypass: false,
 
     /* Treat localhost / 127.0.0.1 / file:// as "I am the developer".
-       Currently OFF, so the countdown is the only thing showing everywhere
-       — on the live site AND on your own machine. Use ?preview=1 to open
-       the full site when you need to work on it. */
-    bypassOnLocalhost: false,
+       Currently ON: the full site opens straight away on your machine,
+       while betterhalf.anirudhshingala.com stays locked behind the
+       countdown for her.
+
+       This is the safe switch to leave on — it keys off the hostname, so
+       it can never unlock the deployed site no matter what. (`bypass`
+       above is the dangerous one; that unlocks everywhere.)
+
+       Want to see her lock screen locally? Add ?gate=1 — it overrides
+       this and forces the countdown. */
+    bypassOnLocalhost: true,
 
     /* Query-string escape hatch, e.g. …/birthday/?preview=1
        Lets you check the real deployed site on your phone without
@@ -142,15 +149,15 @@ window.BIRTHDAY_CONFIG = Object.freeze({
      memory behind each photo — that is what turns this from a nice grid
      into something only she would understand.                              */
   gallery: [
-    { src: 'assets/jetakshi-01.jpg', w: 1080, h: 1351, caption: 'Us' },
-    { src: 'assets/jetakshi-02.jpg', w: 960,  h: 1280, caption: 'That look' },
+    { src: 'assets/jetakshi-01.jpg', w: 1080, h: 1351, caption: 'Lovely' },
+    { src: 'assets/jetakshi-02.jpg', w: 960,  h: 1280, caption: 'That Smile' },
     { src: 'assets/jetakshi-03.jpg', w: 832,  h: 1040, caption: 'Never gets old' },
     { src: 'assets/jetakshi-04.jpg', w: 1080, h: 1295, caption: 'My favourite view' },
     { src: 'assets/jetakshi-05.jpg', w: 686,  h: 1260, caption: 'This one' },
     { src: 'assets/jetakshi-06.jpg', w: 832,  h: 1440, caption: 'Always' },
     { src: 'assets/jetakshi-07.jpg', w: 586,  h: 979,  caption: 'Here’s to many more' },
     // The odd one out shape-wise — which the masonry handles without a fuss.
-    { src: 'assets/jetakshi-08.jpg', w: 462,  h: 412,  caption: 'Us, exactly as we are' },
+    { src: 'assets/jetakshi-08.jpg', w: 462,  h: 412,  caption: 'The naughty one' },
   ],
 
   /* ── Optional background music ────────────────────────────────────────
@@ -197,13 +204,55 @@ window.BIRTHDAY_CONFIG = Object.freeze({
 
   /* ── Copy ─────────────────────────────────────────────────────────── */
   copy: {
-    /* Shown by the 404 modal when the "No" button is hovered or clicked. */
+    /* Shown by the 404 modal, once she has chased the "No" button long
+       enough to deserve it (see rsvp.noButton.modalAfter). */
     noButtonError: "Error 404: 'No' option not found! You can't say no to me! 😜",
-    /* Success lines, keyed by which button won. */
+
+    /* Success line. There is only one winning button now, but answer()
+       falls back to `default` if a new one is ever added. */
     rsvpSuccess: {
-      yes:        'You said yes. I never doubted you for a second.',
-      definitely: 'DEFINITELY yes. Best answer in the history of answers.',
-      no:         'See? I told you there was no "No". 😌',
+      definitely: 'DEFINITELY yes. I knew you would say that. 😘',
+      default:    'You said yes. I never doubted you for a second.',
+    },
+  },
+
+  /* ── The RSVP ─────────────────────────────────────────────────────────
+     There is exactly one real choice. The "No" button bolts the moment the
+     cursor gets near it and can never be clicked — it just taunts you and
+     keeps moving.                                                          */
+  rsvp: {
+    noButton: {
+      /* Set false to make it a plain, static, still-unclickable button. */
+      flee: true,
+
+      /* How close the cursor may get, in px, before it bolts again. Larger
+         = twitchier and harder to corner. */
+      panicRadius: 96,
+
+      /* It never lands closer than this to the cursor, so a fast flick of
+         the mouse can't accidentally trap it under the pointer. */
+      safeDistance: 220,
+
+      /* Label progression. Starts at the first entry and advances one step
+         per escape, then stays on the last — so the chase ends on the line
+         that says the quiet part out loud. */
+      taunts: [
+        'No',
+        'Catch me if you can! 😜',
+        'Nope, too slow!',
+        'Not a chance!',
+        'Still running 🏃‍♀️',
+        "You can't say no to me! 😜",
+      ],
+
+      /* Escapes before the "Error 404: 'No' option not found!" modal pops
+         up as a reward for persistence.
+
+         0 = never (the default). The modal's scrim covers the whole screen,
+         which halts the chase just as it gets fun, and the final taunt
+         already says the same thing. Set it to something like 6 if you'd
+         rather have the modal as a punchline. */
+      modalAfter: 0,
     },
   },
 });

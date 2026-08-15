@@ -27,6 +27,17 @@ from pathlib import Path
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 ROOT = Path(__file__).resolve().parent
 
+# On Windows the console defaults to cp1252, which cannot encode characters
+# outside Latin-1. Printing anything fancier then raises UnicodeEncodeError
+# and takes the whole server down before it serves a single request — so
+# force UTF-8 and degrade gracefully rather than crash. The banner below
+# sticks to ASCII regardless; this only guards against future edits.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass  # not a real stream (piped, redirected, embedded) — fine
+
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
     """Serves the site with caching disabled."""
@@ -55,9 +66,9 @@ def main():
     handler = functools.partial(NoCacheHandler, directory=str(ROOT))
     with ThreadingHTTPServer(("", PORT), handler) as httpd:
         print(f"  Serving {ROOT.name}/ with caching disabled")
-        print(f"  →  http://localhost:{PORT}/")
-        print(f"  →  http://localhost:{PORT}/?preview=1   (full site, skips the gate)")
-        print(f"  →  http://localhost:{PORT}/?gate=1      (force the lock screen)")
+        print(f"  ->  http://localhost:{PORT}/")
+        print(f"  ->  http://localhost:{PORT}/?preview=1   (full site, skips the gate)")
+        print(f"  ->  http://localhost:{PORT}/?gate=1      (force the lock screen)")
         print("  Ctrl+C to stop.\n")
         try:
             httpd.serve_forever()
