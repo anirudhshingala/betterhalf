@@ -224,8 +224,16 @@ window.Gate = (function () {
       // Never leave the markup in the document when it isn't in use.
       root.remove();
       root = null;
-      // Loud enough to notice while building, harmless in production.
-      if (cfg.enabled !== false) {
+      // An unlocked *deployed* site is almost always a mistake left behind
+      // after testing — the whole surprise is spent silently. Shout about
+      // it. On localhost, or with an explicit ?preview, stay quiet.
+      if (!isLocalHost() && (cfg.bypass || cfg.enabled === false)) {
+        console.warn(
+          '%c[gate] THE LIVE SITE IS UNLOCKED — everyone sees the full site.\n' +
+          'Set gate.bypass back to false in js/config.js to restore the countdown.',
+          'color:#ff8fab;font-weight:bold'
+        );
+      } else if (cfg.enabled !== false) {
         console.info('[gate] open — ' + verdict.why);
       }
       return false;

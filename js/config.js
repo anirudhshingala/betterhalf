@@ -58,10 +58,18 @@ window.BIRTHDAY_CONFIG = Object.freeze({
   gate: {
     enabled: true,
 
-    /* ── THE LOCAL-TESTING SWITCH ──────────────────────────────────────
-       Flip to `true` to force the full site open everywhere, including the
-       deployed URL. Remember to set it back to `false` before she looks.  */
-    bypass: false,
+    /* ══════════════════════════════════════════════════════════════════
+       ⚠️  CURRENTLY TRUE — THE LIVE SITE IS WIDE OPEN  ⚠️
+       ══════════════════════════════════════════════════════════════════
+       Temporarily unlocked for mobile testing on the real URL.
+
+       ***  SET THIS BACK TO false TO RESTORE THE COUNTDOWN.  ***
+
+       That is the only change needed — nothing else about the gate was
+       touched. While this is true, anyone who opens
+       betterhalf.anirudhshingala.com sees the whole site immediately,
+       and the browser console warns on every load.                      */
+    bypass: true,
 
     /* Treat localhost / 127.0.0.1 / file:// as "I am the developer".
        Currently ON: the full site opens straight away on your machine,
