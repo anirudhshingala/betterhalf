@@ -40,15 +40,39 @@ window.Countdown = (function () {
    * past by definition), which callers detect via a non-positive delta.
    */
   function nextBirthday(from) {
+    // Readable before start() has run — js/gate.js needs the date maths
+    // during boot, before this module has been initialised.
+    const c = cfg || window.BIRTHDAY_CONFIG.birthday;
     const y = from.getFullYear();
-    let target = new Date(y, cfg.month - 1, cfg.day, cfg.hour, cfg.minute, 0, 0);
+    let target = new Date(y, c.month - 1, c.day, c.hour, c.minute, 0, 0);
 
     // Once the whole birthday *day* is over, roll to next year.
-    const endOfBirthday = new Date(y, cfg.month - 1, cfg.day, 23, 59, 59, 999);
+    const endOfBirthday = new Date(y, c.month - 1, c.day, 23, 59, 59, 999);
     if (from > endOfBirthday) {
-      target = new Date(y + 1, cfg.month - 1, cfg.day, cfg.hour, cfg.minute, 0, 0);
+      target = new Date(y + 1, c.month - 1, c.day, c.hour, c.minute, 0, 0);
     }
     return target;
+  }
+
+  /**
+   * Milliseconds until the birthday begins; 0 once it is here.
+   * The single source of truth for "is it time yet?" — js/gate.js renders
+   * its own clock but asks this module for the number.
+   */
+  function remaining(now) {
+    const d = now || new Date();
+    if (isBirthdayToday(d)) return 0;
+    return Math.max(0, nextBirthday(d).getTime() - d.getTime());
+  }
+
+  /** Split a duration into the four display units. */
+  function breakdown(ms) {
+    return {
+      days:    Math.floor(ms / MS_DAY),
+      hours:   Math.floor((ms % MS_DAY) / MS_HOUR),
+      minutes: Math.floor((ms % MS_HOUR) / MS_MINUTE),
+      seconds: Math.floor((ms % MS_MINUTE) / MS_SECOND),
+    };
   }
 
   /** True for the whole calendar day of 24 August, in local time. */
@@ -188,5 +212,5 @@ window.Countdown = (function () {
     timerId = null;
   }
 
-  return { start, stop, isBirthdayToday };
+  return { start, stop, isBirthdayToday, remaining, nextBirthday, breakdown };
 })();

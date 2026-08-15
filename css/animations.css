@@ -250,6 +250,15 @@
   to   { background-position: 100% 100%; }
 }
 
+/* The J2 monogram catches the same travelling gold as the other foil text,
+   and its heart beats in time with the one in the hero. */
+.invite__initials { animation: gold-sweep 9s linear infinite; }
+.invite__initials-heart {
+  display: inline-block;
+  animation: heartbeat 2.3s var(--ease-soft) infinite;
+  transform-origin: center;
+}
+
 /* The bloom behind the card breathes with it. */
 .invite__foil { animation: foil-bloom 6s var(--ease-soft) infinite alternate; }
 @keyframes foil-bloom {
@@ -265,6 +274,66 @@
   0%   { transform: translateX(-50%) rotate(-30deg) scale(2.1); opacity: 0; }
   60%  { transform: translateX(-50%) rotate(-4deg)  scale(0.92); opacity: 1; }
   100% { transform: translateX(-50%) rotate(-8deg)  scale(1);    opacity: 1; }
+}
+
+
+/* ==========================================================================
+   07b. THE GATE & THE FAVOURITE
+   ========================================================================== */
+
+/* Gate entrance — the lock screen fades up once, on load. */
+.gate:not([hidden]) .gate__inner { animation: gate-in 1200ms var(--ease-out); }
+@keyframes gate-in {
+  0%   { opacity: 0; transform: translateY(26px) scale(0.98); filter: blur(8px); }
+  100% { opacity: 1; transform: none;                         filter: blur(0); }
+}
+
+/* The padlock breathes while you wait. */
+.gate__lock { animation: lock-breathe 3.4s var(--ease-soft) infinite; }
+@keyframes lock-breathe {
+  0%, 100% { transform: scale(1)    rotate(0deg);  opacity: 0.85; }
+  50%      { transform: scale(1.08) rotate(-3deg); opacity: 1; }
+}
+
+/* …then springs open at zero. */
+.gate__lock.is-opening { animation: lock-open 800ms var(--ease-out); }
+@keyframes lock-open {
+  0%   { transform: scale(1)    rotate(0deg); }
+  30%  { transform: scale(1.45) rotate(-14deg); }
+  60%  { transform: scale(1.2)  rotate(10deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+
+/* Unlock: a bright flare, then the whole panel blows apart and dissolves,
+   revealing the hero that is already sitting behind it. */
+.gate.is-unlocking {
+  animation: gate-unseal 1400ms var(--ease-out) forwards;
+  pointer-events: none;
+}
+@keyframes gate-unseal {
+  0%   { opacity: 1; transform: scale(1);    filter: blur(0)    brightness(1); }
+  22%  { opacity: 1; transform: scale(1.03); filter: blur(0)    brightness(2.1); }
+  100% { opacity: 0; transform: scale(1.18); filter: blur(16px) brightness(2.4); }
+}
+
+/* ── The favourite ─────────────────────────────────────────────────────
+   The shimmer loops on the cover as an affordance; the curtain fires once,
+   on reveal. Two separate elements so neither animation interrupts the
+   other mid-sweep. */
+.favourite__shine { animation: fav-shine 3.6s var(--ease-soft) infinite; }
+@keyframes fav-shine {
+  0%        { transform: translateX(-110%); }
+  55%, 100% { transform: translateX(110%); }
+}
+
+.favourite.is-unveiled .favourite__frame::after {
+  animation: fav-curtain 1100ms var(--ease-out) forwards;
+}
+@keyframes fav-curtain {
+  0%   { transform: translateX(-130%); opacity: 0; }
+  18%  {                               opacity: 1; }
+  82%  {                               opacity: 1; }
+  100% { transform: translateX(130%);  opacity: 0; }
 }
 
 

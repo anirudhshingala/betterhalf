@@ -26,6 +26,54 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     minute: 0,
   },
 
+  /* ══════════════════════════════════════════════════════════════════════
+     THE GATE — what Jetakshi sees before the big day
+     ══════════════════════════════════════════════════════════════════════
+     While the gate is locked, the ENTIRE site is replaced by a full-screen
+     countdown. The moment it reaches zero the page unlocks itself, live,
+     with no refresh needed.
+
+     ── How to see the full site while building ──
+     Any ONE of these opens it:
+       1. `bypass: true` below            → always unlocked, everywhere
+       2. localhost / 127.0.0.1 / file:// → unlocked automatically
+       3. ?preview=1 on the URL           → unlocked on any host, incl. live
+
+     ⚠️  This is a surprise, not a security control. It runs in the browser,
+     so anyone who opens devtools can bypass it. That is fine for a birthday
+     gift — just don't put anything genuinely private behind it.            */
+  gate: {
+    enabled: true,
+
+    /* ── THE LOCAL-TESTING SWITCH ──────────────────────────────────────
+       Flip to `true` to force the full site open everywhere, including the
+       deployed URL. Remember to set it back to `false` before she looks.  */
+    bypass: false,
+
+    /* Treat localhost / 127.0.0.1 / file:// as "I am the developer". */
+    bypassOnLocalhost: true,
+
+    /* Query-string escape hatch, e.g. …/birthday/?preview=1
+       Lets you check the real deployed site on your phone without
+       unlocking it for her. Set to null to disable. */
+    previewParam: 'preview',
+
+    /* The opposite escape hatch, e.g. http://localhost:8080/?gate=1
+       FORCES the lock screen even on localhost, so you can see exactly
+       what she sees. Overrides bypass and bypassOnLocalhost. */
+    forceParam: 'gate',
+
+    /* ── Copy for the locked screen ────────────────────────────────────
+       Deliberately just one line and the clock. The whole point is that
+       she doesn't know what it is yet, so the page shouldn't explain.
+       Reads as one sentence wrapped around the timer:
+           "Little surprise for you"
+           "loading in this much time"
+           [ 08 : 12 : 44 : 20 ]                                          */
+    title: 'Little surprise for you',
+    subtitle: 'loading in this much time',
+  },
+
   /* ── The evening ──────────────────────────────────────────────────────
      Display strings only. The invitation card itself is plain markup in
      index.html (<section id="invitation">) — keep the two in sync.         */
@@ -35,22 +83,45 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     locationLabel: 'Just me and you',
   },
 
+  /* ── The favourite ────────────────────────────────────────────────────
+     One photo gets its own stage above the grid, behind a frosted cover
+     that she taps to reveal. Set to null to remove the feature entirely.
+
+     `src` is the file to drop into ./assets/ — change the extension here
+     if you use .jpg/.png instead of .webp.                                */
+  favourite: {
+    src: 'assets/favourite.webp',
+    w: 1199,
+    h: 1440,
+    badge: 'The most favourite one',
+    teaser: 'Tap to reveal',
+    caption: 'This is the one. It always has been.',
+  },
+
   /* ── Gallery ──────────────────────────────────────────────────────────
-     `src` values are the exact filenames to drop into ./assets/.
-     A missing file is not an error: gallery.js renders an elegant labelled
-     placeholder showing the filename it expected, so the grid always looks
-     intentional. `span` controls the desktop grid footprint:
-        'wide' → two columns   |   'tall' → two rows   |   omit → 1×1
-     See assets/README.md for sizes and formats.                            */
+     The grid is a true masonry (CSS columns), so every photo keeps its own
+     natural aspect ratio and NOTHING is ever cropped. Mixed portraits and
+     landscapes can sit side by side without fighting each other.
+
+     `w` and `h` are the file's real pixel dimensions. They are optional,
+     but supplying them lets the browser reserve the exact space before the
+     image arrives — which is the difference between the gallery settling
+     into place and it jolting around as photos load.
+
+     A missing file is not an error: gallery.js renders a labelled
+     placeholder naming the file it expected.
+
+     ✏️  The captions below are gentle placeholders. Swap them for the real
+     memory behind each photo — that is what turns this from a nice grid
+     into something only she would understand.                              */
   gallery: [
-    { src: 'assets/jetakshi-01.jpg', caption: 'The one that started everything', span: 'wide' },
-    { src: 'assets/jetakshi-02.jpg', caption: 'That laugh' },
-    { src: 'assets/jetakshi-03.jpg', caption: 'Golden hour, golden you', span: 'tall' },
-    { src: 'assets/jetakshi-04.jpg', caption: 'Us, being ridiculous' },
-    { src: 'assets/jetakshi-05.jpg', caption: 'My favourite view' },
-    { src: 'assets/jetakshi-06.jpg', caption: 'Somewhere worth remembering', span: 'wide' },
-    { src: 'assets/jetakshi-07.jpg', caption: 'Unposed and perfect' },
-    { src: 'assets/jetakshi-08.jpg', caption: 'Here is to many more' },
+    { src: 'assets/jetakshi-01.jpg', w: 1080, h: 1351, caption: 'Us' },
+    { src: 'assets/jetakshi-02.jpg', w: 960,  h: 1280, caption: 'That look' },
+    { src: 'assets/jetakshi-03.jpg', w: 832,  h: 1040, caption: 'Never gets old' },
+    { src: 'assets/jetakshi-04.jpg', w: 1080, h: 1295, caption: 'My favourite view' },
+    { src: 'assets/jetakshi-05.jpg', w: 686,  h: 1260, caption: 'This one' },
+    { src: 'assets/jetakshi-06.jpg', w: 832,  h: 1440, caption: 'Always' },
+    { src: 'assets/jetakshi-07.jpg', w: 586,  h: 979,  caption: 'Here’s to many more' },
   ],
 
   /* ── Optional background music ────────────────────────────────────────

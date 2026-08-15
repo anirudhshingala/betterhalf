@@ -104,6 +104,53 @@
     <div class="bg-vignette"></div>
   </div>
 
+  <!--
+    ══ THE GATE ══════════════════════════════════════════════════════════
+    What Jetakshi sees until 24 August: one line and a clock, over the same
+    living background. Unlocks itself the instant the timer hits zero.
+
+    Starts `hidden` on purpose. js/gate.js reveals it only when the site
+    should be locked, and deletes it outright otherwise — so a JS failure
+    leaves the full site visible rather than an un-openable lock screen.
+  -->
+  <section id="gate" class="gate" aria-labelledby="gate-title-main" hidden>
+    <div class="gate__inner">
+
+      <div class="gate__lock" id="gate-lock" aria-hidden="true">🔒</div>
+
+      <h1 class="gate__title" id="gate-title-main">Little surprise for you</h1>
+      <p class="gate__subtitle" id="gate-subtitle">loading in this much time</p>
+
+      <!-- Same visual language as the in-page countdown. Digits tick every
+           second so they are hidden from assistive tech; #gate-live carries
+           a calmer once-a-minute summary instead. -->
+      <div class="countdown gate__countdown" aria-hidden="true">
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-days">--</div>
+          <div class="countdown__label">Days</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-hours">--</div>
+          <div class="countdown__label">Hours</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-minutes">--</div>
+          <div class="countdown__label">Minutes</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-seconds">--</div>
+          <div class="countdown__label">Seconds</div>
+        </div>
+      </div>
+
+      <p class="sr-only" id="gate-live" role="status" aria-live="polite"></p>
+
+    </div>
+  </section>
+
   <!-- Section navigation. Revealed only after the story is opened. -->
   <nav id="section-nav" class="section-nav" aria-label="Section navigation">
     <a href="#our-story" data-nav="our-story"><span>Our Story</span></a>
@@ -255,9 +302,19 @@
 
           <header class="section__head" data-reveal>
             <p class="section__kicker">The album</p>
-            <h2 id="gallery-title" class="section__title">Moments I Keep <em>Re-reading</em></h2>
-            <p class="section__lede">Tap any frame to see it full size.</p>
+            <h2 id="gallery-title" class="section__title">My Favourites, <em>So Far</em></h2>
+            <p class="section__lede">
+              These are all my favourites of you until now &mdash; and the
+              <em class="lede-em">most</em> favourite one of them all is right here.
+            </p>
           </header>
+
+          <!-- ── The favourite ────────────────────────────────────────
+               One photo gets its own stage above the grid: covered by a
+               frosted panel until you choose to reveal it, then unveiled
+               with a gold curtain sweep. Rendered by js/gallery.js from
+               BIRTHDAY_CONFIG.favourite. -->
+          <div id="favourite-stage" class="favourite" data-reveal></div>
 
           <!-- Tiles are rendered by js/gallery.js from the list in js/config.js.
                Each tile falls back to a labelled placeholder showing the exact
@@ -292,7 +349,14 @@
 
               <p class="invite__script">You&rsquo;re Invited</p>
 
-              <p class="invite__salutation">To my better half, <span class="invite__initials">J2</span></p>
+              <!-- "J2" is what he calls her, so it is set as a name in its
+                   own right rather than as an abbreviation in a sentence. -->
+              <p class="invite__salutation">
+                <span class="invite__salutation-lead">To my better half,</span>
+                <span class="invite__initials">
+                  J2<span class="invite__initials-heart" aria-hidden="true">❤</span>
+                </span>
+              </p>
 
               <p class="invite__body">
                 You are cordially invited to an exclusive celebration
@@ -435,6 +499,7 @@
   <!-- ══ Application modules (relative, `defer` keeps execution order) ══ -->
   <script defer src="js/config.js"></script>
   <script defer src="js/utils.js"></script>
+  <script defer src="js/gate.js"></script>
   <script defer src="js/balloons.js"></script>
   <script defer src="js/particles.js"></script>
   <script defer src="js/countdown.js"></script>

@@ -22,6 +22,8 @@ window.Reveal = (function () {
   let navObserver = null;
   let progressBar = null;
   let ticking = false;
+  /** Targets still waiting to be revealed — see sweepPassed(). */
+  let pendingReveals = [];
 
   /* ── 1. Reveal on scroll ──────────────────────────────────────────── */
 
@@ -39,9 +41,7 @@ window.Reveal = (function () {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          entry.target.classList.add('is-revealed');
-          // One-shot: nothing re-hides on the way back up.
-          revealObserver.unobserve(entry.target);
+          show(entry.target);
         });
       },
       {
@@ -56,6 +56,36 @@ window.Reveal = (function () {
       // Stagger siblings within the same section.
       node.style.setProperty('--reveal-delay', String(i % 4));
       revealObserver.observe(node);
+      pendingReveals.push(node);
+    });
+  }
+
+  /** Reveal a target once, and stop tracking it. */
+  function show(node) {
+    node.classList.add('is-revealed');
+    if (revealObserver) revealObserver.unobserve(node);
+    // One-shot: nothing re-hides on the way back up.
+    pendingReveals = pendingReveals.filter((n) => n !== node);
+  }
+
+  /**
+   * Safety net for content the viewport has already passed.
+   *
+   * IntersectionObserver only fires while an element is *in* the viewport. An
+   * instant jump — a deep link with a hash, a restored scroll position, a
+   * browser that ignores smooth scrolling — can land below a section without
+   * ever intersecting it, leaving that content stranded at opacity 0 with no
+   * way to bring it back except scrolling up.
+   *
+   * So on every scroll frame, anything now entirely above the viewport is
+   * revealed outright. Cheap (it only ever inspects targets still pending)
+   * and it makes "invisible section" unreachable.
+   */
+  function sweepPassed() {
+    if (!pendingReveals.length) return;
+    // Iterate over a copy: show() mutates pendingReveals.
+    pendingReveals.slice().forEach((node) => {
+      if (node.getBoundingClientRect().bottom < 0) show(node);
     });
   }
 
@@ -65,13 +95,21 @@ window.Reveal = (function () {
    */
   function refresh() {
     if (!revealObserver) return;
-    $$('[data-reveal]:not(.is-revealed)').forEach((n) => revealObserver.observe(n));
+    $$('[data-reveal]:not(.is-revealed)').forEach((n) => {
+      revealObserver.observe(n);
+      if (pendingReveals.indexOf(n) === -1) pendingReveals.push(n);
+    });
   }
 
   /* ── 2. Reading progress ──────────────────────────────────────────── */
 
   function updateProgress() {
     ticking = false;
+
+    // Piggyback on the existing throttled scroll frame rather than adding a
+    // second listener.
+    sweepPassed();
+
     if (!progressBar) return;
 
     const doc = document.documentElement;

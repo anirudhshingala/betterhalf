@@ -99,7 +99,14 @@ html {
   scroll-behavior: smooth;
   /* Anchor jumps stop clear of the fixed nav. */
   scroll-padding-top: 5rem;
+  /* Stop iOS from inflating type in landscape. */
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* `clip` rather than `hidden`: hidden makes the element a scroll container,
+     which is exactly the quirk that lets iOS Safari pan sideways anyway.
+     `hidden` first as the fallback for browsers without `clip`. */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -111,6 +118,7 @@ body {
   font-weight: 300;
   line-height: 1.65;
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -196,6 +204,10 @@ code {
   top: 0.75rem;
   left: 50%;
   z-index: 200;
+  /* 44px minimum so it is a real tap target, not just a keyboard one. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   padding: 0.6rem 1.2rem;
   border-radius: 999px;
   background: var(--gold);
@@ -428,6 +440,7 @@ code {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
 .btn--ghost:hover { background: var(--surface-hi); border-color: var(--gold-soft); }
@@ -528,6 +541,69 @@ body.is-sealed .story { display: none; }
   color: var(--text-muted);
   font-size: clamp(0.95rem, 1.9vw, 1.06rem);
 }
+/* Emphasis inside a lede picks up gold rather than plain italics. */
+.section__lede em {
+  font-style: italic;
+  color: var(--gold-soft);
+}
+
+
+/* ==========================================================================
+   06b. THE GATE — pre-birthday lock screen
+   Sits above #main but below the overlays, and is transparent so the shared
+   background stack (aurora, particles, balloons) shows straight through it.
+   ========================================================================== */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 6vw, 4rem) var(--gutter);
+  text-align: center;
+}
+.gate[hidden] { display: none; }
+
+/* While locked, the site underneath is removed from the flow entirely —
+   not merely covered — so it cannot be scrolled, tabbed into or read out. */
+body.is-locked { overflow: hidden; height: 100%; }
+body.is-locked #main,
+body.is-locked .section-nav,
+body.is-locked .scroll-progress,
+body.is-locked .music-toggle,
+body.is-locked .skip-link { display: none; }
+
+.gate__inner {
+  width: 100%;
+  max-width: 54rem;
+}
+
+.gate__lock {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  line-height: 1;
+  margin-bottom: clamp(1.2rem, 3vw, 1.8rem);
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.45));
+}
+
+.gate__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 4.2rem);
+  font-weight: 300;
+  line-height: 1.14;
+  color: var(--cream);
+}
+
+.gate__subtitle {
+  margin: clamp(0.5rem, 1.6vw, 0.9rem) 0 clamp(2.4rem, 6vw, 3.6rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.05rem, 3.2vw, 1.65rem);
+  font-weight: 300;
+  color: var(--rose-gold);
+}
+
+/* The clock reuses the .countdown component wholesale. */
+.gate__countdown { justify-content: center; }
 
 
 /* ==========================================================================
@@ -646,6 +722,7 @@ body.is-sealed .story { display: none; }
     var(--surface);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
@@ -765,6 +842,7 @@ body.is-sealed .story { display: none; }
   background: var(--surface);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
 }
@@ -815,25 +893,176 @@ body.is-sealed .story { display: none; }
 /* ==========================================================================
    09. GALLERY + LIGHTBOX
    ========================================================================== */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  gap: clamp(0.8rem, 2vw, 1.4rem);
+/* ── The favourite: one photo on its own stage ────────────────────────── */
+.favourite {
+  /* Narrower than the landscape default — a portrait photo at 46rem wide
+     would run off the bottom of most screens. */
+  margin: 0 auto clamp(2rem, 5vw, 3.2rem);
+  max-width: min(100%, 26rem);
+  text-align: center;
 }
 
-/* Two feature tiles break the rhythm on wider screens. */
-@media (min-width: 60rem) {
-  .gallery-grid { grid-template-columns: repeat(4, 1fr); }
-  .gallery-item--wide { grid-column: span 2; }
-  .gallery-item--tall { grid-row: span 2; }
+.favourite__frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  /* Portrait. Overridden inline by js/gallery.js to the photo's own ratio
+     when config supplies its dimensions, so the favourite is never cropped
+     either — this is only the fallback while it loads. */
+  aspect-ratio: 4 / 5;
+  /* Same gradient-ring trick as the grid tiles, one step heavier. */
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--midnight-2), var(--midnight-2)) padding-box,
+    var(--grad-gold) border-box;
+  box-shadow: var(--shadow-lg), 0 0 46px rgba(212, 175, 55, 0.22);
 }
+
+.favourite__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Hidden behind the cover until revealed — see animations.css §07b. */
+  transform: scale(1.12);
+  filter: blur(18px) saturate(0.7);
+  transition: transform 1400ms var(--ease-out), filter 1100ms var(--ease-out);
+}
+.favourite.is-unveiled .favourite__img {
+  transform: scale(1);
+  filter: blur(0) saturate(1.02);
+}
+
+/* Frosted cover panel. */
+.favourite__cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(110% 80% at 50% 30%, rgba(183, 110, 121, 0.32), transparent 65%),
+    rgba(10, 10, 31, 0.72);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  transition: opacity 900ms var(--ease-out), backdrop-filter 900ms var(--ease-out);
+}
+.favourite.is-unveiled .favourite__cover {
+  opacity: 0;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  pointer-events: none;
+}
+
+.favourite__badge {
+  display: inline-block;
+  padding: 0.42rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(212, 175, 55, 0.12);
+  font-size: clamp(0.6rem, 1.7vw, 0.72rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+.favourite__teaser {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.15rem, 3.4vw, 1.7rem);
+  color: var(--cream);
+}
+
+/* Diagonal shimmer that keeps sweeping the cover, hinting it is tappable. */
+.favourite__shine {
+  position: absolute;
+  inset: -60% -25%;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgba(243, 217, 152, 0.28) 50%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.favourite__cover:hover .favourite__teaser { color: var(--gold-soft); }
+.favourite__cover:hover { background:
+    radial-gradient(110% 80% at 50% 30%, rgba(183, 110, 121, 0.42), transparent 65%),
+    rgba(10, 10, 31, 0.66); }
+
+/* Gold curtain that sweeps across at the moment of reveal. */
+.favourite__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(243, 217, 152, 0.55) 45%,
+    rgba(255, 250, 240, 0.85) 50%,
+    rgba(243, 217, 152, 0.55) 55%,
+    transparent 100%
+  );
+  transform: translateX(-130%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* After the reveal the photo becomes clickable for the lightbox. */
+.favourite__frame.is-interactive { cursor: zoom-in; }
+.favourite__frame.is-interactive:hover .favourite__img { transform: scale(1.04); }
+
+.favourite__caption {
+  margin-top: clamp(0.9rem, 2.5vw, 1.3rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.98rem, 2.4vw, 1.18rem);
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 700ms var(--ease-out) 500ms, transform 700ms var(--ease-out) 500ms;
+}
+.favourite.is-unveiled .favourite__caption { opacity: 1; transform: none; }
+
+/* Missing file: show the placeholder, drop the reveal choreography. */
+.favourite.is-missing .favourite__frame { aspect-ratio: 3 / 2; }
+.favourite.is-missing .favourite__caption { opacity: 1; transform: none; }
+
+/* ── Masonry via CSS columns ──────────────────────────────────────────
+   Deliberately NOT a CSS grid. Every photo here is a different shape, and
+   a grid forces each tile into a fixed cell, which means object-fit has to
+   crop something out of every one. Columns let each image keep its own
+   natural aspect ratio, so nothing is ever cut off.
+
+   The trade-off is reading order: columns flow top-to-bottom, then across.
+   For a photo wall with no narrative sequence that costs nothing, and the
+   lightbox still pages through them in config order.                      */
+/* Three columns is the ceiling on purpose. With a handful of photos, four
+   columns leaves one of them half-empty (7 items distribute 2/2/2/1) and
+   shrinks every picture to make room for the gap. Three fills evenly and
+   shows each photo larger. Raise this if the album grows past ~12. */
+.gallery-grid {
+  column-count: 2;
+  column-gap: clamp(0.8rem, 2vw, 1.4rem);
+  max-width: 62rem;
+  margin: 0 auto;
+}
+@media (min-width: 48rem) { .gallery-grid { column-count: 3; } }
 
 .gallery-item {
   position: relative;
   display: block;
   width: 100%;
   padding: 0;
-  aspect-ratio: 4 / 5;
+  /* Keep a tile from being split across a column break. */
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin: 0 0 clamp(0.8rem, 2vw, 1.4rem);
   overflow: hidden;
   border-radius: var(--radius);
   /* The gold border is a gradient ring drawn with a padding-box mask. */
@@ -846,12 +1075,9 @@ body.is-sealed .story { display: none; }
     transform var(--dur) var(--ease-out),
     box-shadow var(--dur) var(--ease-out);
 }
-.gallery-item--wide { aspect-ratio: 8 / 5; }
-.gallery-item--tall { aspect-ratio: 4 / 5; }
 
-@media (min-width: 60rem) {
-  .gallery-item--tall { aspect-ratio: auto; }
-}
+/* Only placeholders need an invented shape — real photos supply their own. */
+.gallery-item.is-empty { aspect-ratio: 4 / 5; }
 
 .gallery-item:hover,
 .gallery-item:focus-visible {
@@ -861,8 +1087,11 @@ body.is-sealed .story { display: none; }
 
 .gallery-item__img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  /* `auto` is what preserves the photo's own proportions inside the column.
+     The width/height attributes on the element reserve the right box before
+     the file arrives, so the masonry doesn't jolt as photos load in. */
+  height: auto;
+  display: block;
   transform: scale(1.001);
   transition: transform 780ms var(--ease-out), filter var(--dur) var(--ease-out);
   filter: saturate(0.94) contrast(1.02);
@@ -967,6 +1196,7 @@ body.is-sealed .story { display: none; }
   position: absolute;
   inset: 0;
   background: rgba(4, 4, 14, 0.9);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
 
@@ -1007,6 +1237,7 @@ body.is-sealed .story { display: none; }
   color: var(--cream);
   font-size: 1.6rem;
   line-height: 1;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition: background var(--dur) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
@@ -1036,13 +1267,17 @@ body.is-sealed .story { display: none; }
   box-shadow: var(--shadow-lg), 0 0 56px rgba(212, 175, 55, 0.22);
 }
 
-/* Soft gold bloom behind the whole card. */
+/* Soft gold bloom behind the whole card.
+   Bleeds vertically only. An earlier `inset: -14%` on all four sides pushed
+   it ~50px past the viewport on a phone, which relied on body's overflow
+   clip to hide — and iOS Safari does not reliably honour that. Vertical
+   bleed costs nothing because the page already scrolls that way. */
 .invite__foil {
   position: absolute;
-  inset: -14%;
+  inset: -14% 0;
   z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(212, 175, 55, 0.28), transparent 72%);
+  background: radial-gradient(closest-side, rgba(212, 175, 55, 0.30), transparent 72%);
   filter: blur(28px);
 }
 
@@ -1090,20 +1325,48 @@ body.is-sealed .story { display: none; }
 }
 
 .invite__salutation {
-  margin-bottom: 1.1rem;
-  font-family: var(--font-display);
-  font-size: clamp(1rem, 2.4vw, 1.22rem);
-  letter-spacing: 0.06em;
-  color: var(--rose-gold);
+  margin-bottom: clamp(1.2rem, 3vw, 1.8rem);
 }
+
+/* The lead-in stays small and quiet so the name can carry the line. */
+.invite__salutation-lead {
+  display: block;
+  font-family: var(--font-body);
+  font-size: clamp(0.68rem, 1.8vw, 0.8rem);
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 0.4rem;
+}
+
 .invite__initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22em;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 9vw, 4.2rem);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
   background: var(--grad-gold);
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+}
+
+/* The heart must opt out of the gold text-clip it would otherwise inherit
+   (-webkit-text-fill-color is an inherited property). */
+.invite__initials-heart {
+  font-size: 0.62em;
+  line-height: 1;
+  color: var(--sunset);
+  -webkit-text-fill-color: var(--sunset);
+  background: none;
+  filter: drop-shadow(0 0 14px rgba(255, 143, 171, 0.7));
 }
 
 .invite__body {
@@ -1200,6 +1463,7 @@ body.is-sealed .story { display: none; }
   background: var(--surface);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-lg), 0 0 44px rgba(255, 143, 171, 0.16);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .rsvp-success[hidden] { display: none; }
@@ -1243,6 +1507,7 @@ body.is-sealed .story { display: none; }
   position: absolute;
   inset: 0;
   background: rgba(4, 4, 14, 0.72);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
@@ -1373,6 +1638,7 @@ body.is-sealed .story { display: none; }
   border-radius: 50%;
   background: var(--surface-hi);
   border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-sm);
   transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur) var(--ease-out);
@@ -1447,5 +1713,118 @@ body.is-sealed .story { display: none; }
    solid surfaces instead. */
 @media (max-width: 48rem) {
   .countdown__unit,
-  .rsvp-success { backdrop-filter: none; background: rgba(20, 17, 52, 0.72); }
+  .rsvp-success {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(20, 17, 52, 0.72);
+  }
+}
+
+
+/* ==========================================================================
+   15. TOUCH DEVICES
+   --------------------------------------------------------------------------
+   The problem this section solves: on a touchscreen there is no hover. A tap
+   fires :hover and then *leaves it stuck* until you tap elsewhere. So any
+   content that only appears on hover is either unreachable or sticks on at
+   random — both bad. Anything hover-revealed therefore needs a coarse-pointer
+   equivalent, and anything hover-decorative needs to not fire on tap.
+
+   Keyed on `hover`/`pointer` rather than width, because a small window on a
+   laptop still has a real mouse and a large tablet still doesn't.
+   ========================================================================== */
+@media (hover: none), (pointer: coarse) {
+
+  /* Gallery captions can't wait for a hover that will never come. */
+  .gallery-item__veil { opacity: 1; }
+  .gallery-item__caption { transform: none; }
+
+  /* Lighter scrim, since it is now permanent rather than a hover flourish. */
+  .gallery-item__veil {
+    background: linear-gradient(
+      to top,
+      rgba(10, 10, 31, 0.82) 0%,
+      rgba(10, 10, 31, 0.1) 42%,
+      transparent 62%
+    );
+  }
+
+  /* Lift-on-hover reads as a stuck state after a tap — drop it. */
+  .btn:hover,
+  .gallery-item:hover,
+  .countdown__unit:hover,
+  .music-toggle:hover,
+  .lightbox__close:hover,
+  .lightbox__nav:hover { transform: none; }
+
+  .lightbox__nav--prev:hover,
+  .lightbox__nav--next:hover { transform: translateY(-50%); }
+
+  /* Give feedback on the press itself instead. */
+  .btn:active { transform: scale(0.97); }
+  .gallery-item:active { transform: scale(0.985); }
+
+  /* The tiny "No" is a joke, but it still has to be tappable. Apple and
+     Google both put the floor at 44px; the visual size is unchanged. */
+  .btn--tiny {
+    min-height: 44px;
+    padding-inline: 1.4rem;
+  }
+
+  /* Comfortable thumb targets in the photo viewer. */
+  .lightbox__close,
+  .lightbox__nav { width: 3.25rem; height: 3.25rem; }
+}
+
+/* Kill the grey flash Android/iOS paint over tapped elements — the site has
+   its own press states and the default clashes with the palette. */
+@media (pointer: coarse) {
+  a, button, .gallery-item, .favourite__cover {
+    -webkit-tap-highlight-color: rgba(212, 175, 55, 0.18);
+  }
+}
+
+
+/* ==========================================================================
+   16. NOTCHES & HOME INDICATORS
+   `viewport-fit=cover` in the meta tag lets the page use the full screen on
+   notched phones, which also means fixed UI can land under the notch or the
+   home bar. These offsets keep it clear. env() resolves to 0 everywhere else.
+   ========================================================================== */
+.music-toggle {
+  left: max(clamp(0.75rem, 2.5vw, 1.6rem), env(safe-area-inset-left));
+  bottom: max(clamp(0.75rem, 2.5vw, 1.6rem), env(safe-area-inset-bottom));
+}
+.section-nav {
+  right: max(clamp(0.6rem, 2vw, 1.6rem), env(safe-area-inset-right));
+}
+.lightbox__close {
+  top: max(clamp(0.75rem, 3vw, 1.5rem), env(safe-area-inset-top));
+  right: max(clamp(0.75rem, 3vw, 1.5rem), env(safe-area-inset-right));
+}
+.footer { padding-bottom: max(clamp(3rem, 8vw, 4.5rem), env(safe-area-inset-bottom)); }
+
+
+/* ==========================================================================
+   17. SMALL-PHONE REFINEMENTS
+   ========================================================================== */
+@media (max-width: 26rem) {
+  /* The gate is the one screen she may stare at for days — keep the clock
+     comfortably readable rather than letting it shrink with the viewport. */
+  .gate__countdown .countdown__value { font-size: 2.1rem; }
+  .gate__countdown .countdown__unit { padding: 0.85rem 0.4rem; }
+
+  /* Long single words (the J2 monogram, "Definitely, Yes!") must not push
+     the layout sideways on a 320px screen. */
+  .btn { white-space: normal; }
+  .invite__initials { font-size: 2.4rem; }
+}
+
+/* Landscape phones are short, not narrow: the hero must not demand a full
+   portrait-height screen or the CTA ends up below the fold. */
+@media (max-height: 30rem) and (orientation: landscape) {
+  .hero { min-height: auto; padding-block: 3.5rem; }
+  .hero__scroll-hint { display: none; }
+  .gate { padding-block: 2rem; }
+  .gate__lock { display: none; }
 }

@@ -127,7 +127,22 @@
      ══════════════════════════════════════════════════════════════════════ */
 
   function boot() {
-    // Ambient layers first — they should already be alive behind the hero.
+    /* The gate is decided FIRST, before anything else touches the DOM, so
+       the site is never briefly visible before being locked away. It runs
+       inside `defer` — after parsing but before first paint — so there is
+       no flash of the real page. */
+    window.Gate.start({
+      onUnlock: function () {
+        // #main was display:none while locked, so its reveal targets never
+        // intersected. Re-register them now that they have a layout box.
+        if (window.Reveal) window.Reveal.refresh();
+        // Midnight just struck. Make some noise.
+        if (window.RSVP) window.RSVP.celebrate();
+      },
+    });
+
+    // Ambient layers next — these sit behind the gate as well as the hero,
+    // so the lock screen gets the same living background.
     window.Balloons.start();
     window.Particles.start();
 
@@ -153,7 +168,12 @@
 
     // If it *is* the big day, greet with confetti a beat after the hero
     // entrance finishes rather than the instant the page paints.
-    if (window.Countdown.isBirthdayToday() && !prefersReducedMotion()) {
+    // Skipped while the gate is up — unlocking fires its own celebration.
+    if (
+      window.Countdown.isBirthdayToday() &&
+      !window.Gate.isLocked() &&
+      !prefersReducedMotion()
+    ) {
       setTimeout(() => window.RSVP.celebrate(), 1800);
     }
   }
