@@ -1,58 +1,513 @@
 <!DOCTYPE html>
 <!--
-  Root of the `betterhalf` repo.
+  ============================================================================
+  A Birthday Keepsake for Jetakshi — 24 August
+  ----------------------------------------------------------------------------
+  Single-page, dependency-light, statically hostable.
 
-  The repo holds one site per subfolder, so this file exists only so that the
-  bare domain does not 404. Anyone landing on betterhalf.anirudhshingala.com
-  is sent straight to /bday/.
-
-  Three redirect mechanisms, in order of how fast they fire:
-    1. <meta refresh> — works with JavaScript disabled
-    2. location.replace — instant, and leaves no history entry to trap the
-       back button in a redirect loop
-    3. a plain link — the last resort if both are blocked
-  The target is relative, so this works on github.io and on the custom
-  domain without modification.
+  PATH POLICY (important):
+  Every local reference below is *relative* (e.g. "css/main.css", not
+  "/css/main.css"). This lets the exact same build work when opened from
+  localhost root, from a nested GitHub Pages project path, or from a custom
+  domain sub-path such as anirudhshingala.com/betterhalf/birthday.
+  Only third-party CDN references use absolute https:// URLs, as they must.
+  ============================================================================
 -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="refresh" content="0; url=bday/" />
-  <link rel="canonical" href="bday/" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <title>Happy Birthday, Jetakshi ❤️</title>
+  <meta name="description" content="An animated birthday keepsake and evening invitation for Jetakshi — 24 August, 7:30 PM." />
+  <meta name="theme-color" content="#0a0a1f" />
+  <meta name="color-scheme" content="dark" />
+
+  <!-- Social preview. og:image is intentionally relative so it resolves under any sub-path. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Happy Birthday, Jetakshi ❤️" />
+  <meta property="og:description" content="An exclusive evening celebration. August 24 · 7:30 PM." />
+  <meta property="og:image" content="assets/jetakshi-01.jpg" />
+
+  <!-- Inline SVG favicon: no extra network request, no absolute path. -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%88%3C/text%3E%3C/svg%3E" />
-  <style>
-    :root { color-scheme: dark; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(120% 90% at 50% 30%, #2b1b45, #0a0a1f 70%);
-      color: #fdf6ee;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      text-align: center;
-      padding: 2rem;
-    }
-    p { margin: 0 0 1rem; font-size: 1.4rem; font-weight: 300; opacity: 0.85; }
-    a {
-      color: #f3d998;
-      font-size: 1.05rem;
-      letter-spacing: 0.06em;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.5);
-      text-decoration: none;
-      padding-bottom: 2px;
-    }
-    a:hover { border-bottom-color: #f3d998; }
-  </style>
+
+  <!-- Flags that JavaScript is available. Every "hidden until revealed"
+       start state in animations.css is scoped to `html.js`, so a JS-less
+       browser gets the full page rather than a blank one. Inline and first
+       so it applies before the stylesheets paint. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <!-- ── Typography ─────────────────────────────────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- ── Tailwind (Play CDN) ────────────────────────────────────────────
+       Used only for layout/spacing utilities. Every bespoke visual lives in
+       css/main.css so the page still reads beautifully if the CDN is blocked. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Expose the project palette to Tailwind utilities (text-gold, bg-midnight, …).
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight:  '#0a0a1f',
+            midnight2: '#141134',
+            plum:      '#2b1b45',
+            gold:      '#d4af37',
+            goldsoft:  '#f3d998',
+            rose:      '#b76e79',
+            rosegold:  '#e8b4a0',
+            sunset:    '#ff8fab',
+            blush:     '#ffd6e0',
+            cream:     '#fdf6ee',
+          },
+          fontFamily: {
+            display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            script:  ['"Great Vibes"', 'cursive'],
+            body:    ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- ── Project styles (relative paths) ────────────────────────────────── -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
 </head>
-<body>
-  <div>
-    <p>Taking you there&hellip;</p>
-    <a href="bday/">Continue &rarr;</a>
+
+<body class="font-body">
+
+  <!-- Keyboard users get a way past the decorative hero. -->
+  <a class="skip-link" href="#our-story">Skip to content</a>
+
+  <!-- Thin gold reading-progress bar pinned to the top of the viewport. -->
+  <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-bar"></span></div>
+
+  <!--
+    ══ AMBIENT BACKGROUND STACK ══════════════════════════════════════════
+    Fixed, pointer-events:none, aria-hidden. Three independent layers:
+      1. .bg-aurora        — slow drifting rose-gold / sunset colour washes
+      2. #particle-canvas  — canvas hearts & stars (js/particles.js)
+      3. #balloon-layer    — DOM balloons floating bottom → top (js/balloons.js)
+  -->
+  <div class="bg-stack" aria-hidden="true">
+    <div class="bg-aurora"></div>
+    <div class="bg-grain"></div>
+    <canvas id="particle-canvas"></canvas>
+    <div id="balloon-layer" class="balloon-layer"></div>
+    <div class="bg-vignette"></div>
   </div>
-  <script>location.replace('bday/');</script>
+
+  <!--
+    ══ THE GATE ══════════════════════════════════════════════════════════
+    What Jetakshi sees until 24 August: one line and a clock, over the same
+    living background. Unlocks itself the instant the timer hits zero.
+
+    Starts `hidden` on purpose. js/gate.js reveals it only when the site
+    should be locked, and deletes it outright otherwise — so a JS failure
+    leaves the full site visible rather than an un-openable lock screen.
+  -->
+  <section id="gate" class="gate" aria-labelledby="gate-title-main" hidden>
+    <div class="gate__inner">
+
+      <div class="gate__lock" id="gate-lock" aria-hidden="true">🔒</div>
+
+      <h1 class="gate__title" id="gate-title-main">Little surprise for you</h1>
+      <p class="gate__subtitle" id="gate-subtitle">loading in this much time</p>
+
+      <!-- Same visual language as the in-page countdown. Digits tick every
+           second so they are hidden from assistive tech; #gate-live carries
+           a calmer once-a-minute summary instead. -->
+      <div class="countdown gate__countdown" aria-hidden="true">
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-days">--</div>
+          <div class="countdown__label">Days</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-hours">--</div>
+          <div class="countdown__label">Hours</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-minutes">--</div>
+          <div class="countdown__label">Minutes</div>
+        </div>
+        <span class="countdown__sep">:</span>
+        <div class="countdown__unit">
+          <div class="countdown__value" id="gate-cd-seconds">--</div>
+          <div class="countdown__label">Seconds</div>
+        </div>
+      </div>
+
+      <p class="sr-only" id="gate-live" role="status" aria-live="polite"></p>
+
+    </div>
+  </section>
+
+  <!-- Section navigation. Revealed only after the story is opened. -->
+  <nav id="section-nav" class="section-nav" aria-label="Section navigation">
+    <a href="#our-story" data-nav="our-story"><span>Our Story</span></a>
+    <a href="#countdown" data-nav="countdown"><span>Countdown</span></a>
+    <a href="#gallery"    data-nav="gallery"><span>Gallery</span></a>
+    <a href="#invitation" data-nav="invitation"><span>Invitation</span></a>
+    <a href="#rsvp"       data-nav="rsvp"><span>RSVP</span></a>
+  </nav>
+
+  <main id="main">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 1 — HERO COVER
+         ══════════════════════════════════════════════════════════════════ -->
+    <section id="hero" class="hero" aria-labelledby="hero-title">
+      <div class="hero__inner">
+
+        <p class="hero__eyebrow" data-hero="1">
+          <span class="rule"></span>
+          <span>24 &middot; August</span>
+          <span class="rule"></span>
+        </p>
+
+        <h1 id="hero-title" class="hero__title" data-hero="2">
+          <span class="hero__title-line">Happy Birthday,</span>
+          <span class="hero__title-name">
+            <span class="shimmer">Jetakshi</span>
+            <span class="hero__heart" aria-hidden="true">❤️</span>
+          </span>
+        </h1>
+
+        <p class="hero__sub" data-hero="3">
+          A little corner of the internet, built entirely for you.
+        </p>
+
+        <div class="hero__cta" data-hero="4">
+          <!-- The pulsing key that unseals the rest of the page. -->
+          <button id="open-story" class="btn btn--primary btn--pulse" type="button">
+            <span class="btn__label">Click to Open Our Story</span>
+            <span class="btn__glow" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="hero__scroll-hint" data-hero="5" aria-hidden="true">
+          <span class="hero__mouse"><span></span></span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Everything below is hidden behind the seal until "Open Our Story"
+         is pressed. The .is-sealed class is applied by JS, so a browser with
+         JS disabled simply shows the whole page. -->
+    <div id="story" class="story">
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 2 — OUR STORY & JOURNEY
+           The payoff for the hero's "Click to Open Our Story" button, so it
+           sits first: the button's promise is kept immediately.
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="our-story" class="section" aria-labelledby="our-story-title">
+        <div class="section__inner section__inner--narrow">
+
+          <header class="section__head" data-reveal>
+            <p class="section__kicker">How we got here</p>
+            <h2 id="our-story-title" class="section__title">Our Story &amp; <em>Journey</em></h2>
+          </header>
+
+          <figure class="story-quote" data-reveal>
+            <span class="story-quote__mark" aria-hidden="true">&ldquo;</span>
+            <blockquote class="story-quote__text">
+              We were total strangers when we met, and look at what we are now.
+              Many things went sideways for us to be in the right place for each
+              other, and I don&rsquo;t want to waste this opportunity to celebrate
+              this with you on your very special day.
+            </blockquote>
+            <figcaption class="story-quote__sign">&mdash; yours, always</figcaption>
+          </figure>
+
+          <!-- Strangers → Us. A two-stop journey rail, purely decorative
+               but it gives the quote somewhere to land. -->
+          <ol class="journey" data-reveal>
+            <li class="journey__stop">
+              <span class="journey__dot" aria-hidden="true"></span>
+              <span class="journey__label">Total strangers</span>
+            </li>
+            <li class="journey__rail" aria-hidden="true"></li>
+            <li class="journey__stop journey__stop--now">
+              <span class="journey__dot" aria-hidden="true"></span>
+              <span class="journey__label">You &amp; me</span>
+            </li>
+          </ol>
+
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 3 — LIVE COUNTDOWN
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="countdown" class="section" aria-labelledby="countdown-title">
+        <div class="section__inner">
+
+          <header class="section__head" data-reveal>
+            <p class="section__kicker">The wait</p>
+            <h2 id="countdown-title" class="section__title">Counting Down to <em>You</em></h2>
+            <p class="section__lede" id="countdown-caption">Every second is one second closer.</p>
+          </header>
+
+          <!-- Digits tick every second, so they are hidden from assistive tech.
+               #countdown-live carries a calmer, once-a-minute spoken summary. -->
+          <div class="countdown" data-reveal aria-hidden="true">
+            <div class="countdown__unit">
+              <div class="countdown__value" id="cd-days">--</div>
+              <div class="countdown__label">Days</div>
+            </div>
+            <span class="countdown__sep">:</span>
+            <div class="countdown__unit">
+              <div class="countdown__value" id="cd-hours">--</div>
+              <div class="countdown__label">Hours</div>
+            </div>
+            <span class="countdown__sep">:</span>
+            <div class="countdown__unit">
+              <div class="countdown__value" id="cd-minutes">--</div>
+              <div class="countdown__label">Minutes</div>
+            </div>
+            <span class="countdown__sep">:</span>
+            <div class="countdown__unit">
+              <div class="countdown__value" id="cd-seconds">--</div>
+              <div class="countdown__label">Seconds</div>
+            </div>
+          </div>
+
+          <p class="sr-only" id="countdown-live" role="status" aria-live="polite"></p>
+
+          <!-- Swapped in on the day itself. -->
+          <div class="countdown__arrived" id="countdown-arrived" hidden>
+            <p class="script-accent">It's finally here</p>
+            <p class="countdown__arrived-line">Happy Birthday, Jetakshi.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 4 — INTERACTIVE VISUAL GALLERY
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="gallery" class="section" aria-labelledby="gallery-title">
+        <div class="section__inner">
+
+          <header class="section__head" data-reveal>
+            <p class="section__kicker">The album</p>
+            <h2 id="gallery-title" class="section__title">My Favourites, <em>So Far</em></h2>
+            <p class="section__lede">
+              These are all my favourites of you until now &mdash; and the
+              <em class="lede-em">most</em> favourite one of them all is right here.
+            </p>
+          </header>
+
+          <!-- ── The favourite ────────────────────────────────────────
+               One photo gets its own stage above the grid: covered by a
+               frosted panel until you choose to reveal it, then unveiled
+               with a gold curtain sweep. Rendered by js/gallery.js from
+               BIRTHDAY_CONFIG.favourite. -->
+          <div id="favourite-stage" class="favourite" data-reveal></div>
+
+          <!-- Tiles are rendered by js/gallery.js from the list in js/config.js.
+               Each tile falls back to a labelled placeholder showing the exact
+               filename to drop into ./assets/ — so the grid looks intentional
+               even before a single photo has been added. -->
+          <div id="gallery-grid" class="gallery-grid" data-reveal></div>
+
+          <p class="gallery__note" data-reveal>
+            Drop your photos into <code>assets/</code> using the filenames shown on each empty frame.
+            Full instructions live in <code>assets/README.md</code>.
+          </p>
+
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 5 — THE EVENING INVITATION
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="invitation" class="section" aria-labelledby="invite-title">
+        <div class="section__inner section__inner--narrow">
+
+          <header class="section__head" data-reveal>
+            <p class="section__kicker">The evening</p>
+            <h2 id="invite-title" class="section__title">An <em>Invitation</em></h2>
+          </header>
+
+          <article class="invite" data-reveal>
+            <div class="invite__foil" aria-hidden="true"></div>
+            <div class="invite__frame">
+
+              <div class="invite__ornament invite__ornament--top" aria-hidden="true">✦ &nbsp;❈&nbsp; ✦</div>
+
+              <p class="invite__script">You&rsquo;re Invited</p>
+
+              <!-- "J2" is what he calls her, so it is set as a name in its
+                   own right rather than as an abbreviation in a sentence. -->
+              <p class="invite__salutation">
+                <span class="invite__salutation-lead">To my better half,</span>
+                <span class="invite__initials">
+                  J2<span class="invite__initials-heart" aria-hidden="true">❤</span>
+                </span>
+              </p>
+
+              <p class="invite__body">
+                You are cordially invited to an exclusive celebration
+                dedicated entirely to you.
+              </p>
+
+              <!-- Three equal columns. The separators are borders on the
+                   items themselves, not elements, so they vanish cleanly
+                   when the grid stacks on narrow screens. -->
+              <dl class="invite__details">
+                <div class="invite__detail">
+                  <dt>Date</dt>
+                  <dd>August 24</dd>
+                </div>
+                <div class="invite__detail">
+                  <dt>Time</dt>
+                  <dd>7:30 PM</dd>
+                </div>
+                <div class="invite__detail">
+                  <dt>Location</dt>
+                  <dd>Just me and you</dd>
+                </div>
+              </dl>
+
+              <p class="invite__signoff">
+                Dress code: whatever makes you feel unstoppable.<br />
+                Company: entirely mine.
+              </p>
+
+              <div class="invite__ornament invite__ornament--bottom" aria-hidden="true">✦ &nbsp;❈&nbsp; ✦</div>
+
+              <!-- Wax seal, purely decorative. -->
+              <div class="invite__seal" aria-hidden="true"><span>J2</span></div>
+
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 6 — PLAYFUL RSVP
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="rsvp" class="section section--last" aria-labelledby="rsvp-title">
+        <div class="section__inner section__inner--narrow">
+
+          <header class="section__head" data-reveal>
+            <p class="section__kicker">The only question</p>
+            <h2 id="rsvp-title" class="section__title">Will You <em>Be There?</em></h2>
+            <p class="section__lede">Take your time. Choose carefully. (There&rsquo;s only one right answer.)</p>
+          </header>
+
+          <div class="rsvp" id="rsvp-choices" data-reveal>
+            <button class="btn btn--primary rsvp__yes" type="button" data-rsvp="yes">
+              <span class="btn__label">Yes, I&rsquo;ll Be There!</span>
+              <span class="btn__glow" aria-hidden="true"></span>
+            </button>
+
+            <button class="btn btn--gold rsvp__yes" type="button" data-rsvp="definitely">
+              <span class="btn__label">Definitely, Yes! 😍</span>
+              <span class="btn__glow" aria-hidden="true"></span>
+            </button>
+
+            <!-- The tiny "No". Hovering *or* clicking it fires the 404 modal,
+                 after which its label is permanently rewritten to "Yes!". -->
+            <button class="btn btn--tiny rsvp__no" type="button" id="rsvp-no" data-rsvp="no">
+              <span class="btn__label" id="rsvp-no-label">No</span>
+            </button>
+          </div>
+
+          <!-- Success state, revealed after any winning answer. -->
+          <div class="rsvp-success" id="rsvp-success" hidden>
+            <div class="rsvp-success__mark" aria-hidden="true">❤</div>
+            <p class="script-accent">It&rsquo;s a date</p>
+            <p class="rsvp-success__line" id="rsvp-success-line"></p>
+            <p class="rsvp-success__meta">August 24 &nbsp;·&nbsp; 7:30 PM &nbsp;·&nbsp; Just me and you</p>
+            <button class="btn btn--ghost" type="button" id="rsvp-again">
+              <span class="btn__label">Do the confetti again 🎉</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p class="footer__line">
+          Made with far too much love (and a little JavaScript) &mdash; for
+          <span class="footer__name">Jetakshi</span>.
+        </p>
+        <p class="footer__meta">24 August &nbsp;·&nbsp; 7:30 PM &nbsp;·&nbsp; Just me and you</p>
+      </footer>
+
+    </div><!-- /#story -->
+  </main>
+
+  <!-- ══ OVERLAY: Error 404 modal (RSVP "No" handler) ═══════════════════ -->
+  <div class="modal" id="error-modal" role="dialog" aria-modal="true"
+       aria-labelledby="error-modal-title" aria-describedby="error-modal-body" hidden>
+    <div class="modal__scrim" data-modal-close></div>
+    <div class="modal__card" role="document">
+      <div class="modal__emoji" aria-hidden="true">🚫</div>
+      <h3 class="modal__title" id="error-modal-title">Error 404</h3>
+      <p class="modal__body" id="error-modal-body">
+        &lsquo;No&rsquo; option not found! You can&rsquo;t say no to me! 😜
+      </p>
+      <button class="btn btn--primary btn--sm" type="button" id="error-modal-ok">
+        <span class="btn__label">Fine, okay 😄</span>
+        <span class="btn__glow" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ OVERLAY: Gallery lightbox ══════════════════════════════════════ -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+    <div class="lightbox__scrim" data-lightbox-close></div>
+    <figure class="lightbox__figure">
+      <img id="lightbox-img" src="" alt="" />
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+    <button class="lightbox__close" type="button" id="lightbox-close" aria-label="Close photo viewer">&times;</button>
+    <button class="lightbox__nav lightbox__nav--prev" type="button" id="lightbox-prev" aria-label="Previous photo">&#8249;</button>
+    <button class="lightbox__nav lightbox__nav--next" type="button" id="lightbox-next" aria-label="Next photo">&#8250;</button>
+  </div>
+
+  <!-- ══ Optional background music ══════════════════════════════════════
+       Self-hiding: if assets/our-song.mp3 is absent, js/music.js removes the
+       button entirely, so nothing looks broken. -->
+  <button class="music-toggle" id="music-toggle" type="button" aria-pressed="false" hidden
+          aria-label="Play background music">
+    <span class="music-toggle__icon" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </span>
+  </button>
+  <audio id="bg-music" loop preload="none"></audio>
+
+  <!-- ══ Third-party libraries (CDN, absolute by necessity) ═════════════ -->
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <!-- ══ Application modules (relative, `defer` keeps execution order) ══ -->
+  <script defer src="js/config.js"></script>
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/gate.js"></script>
+  <script defer src="js/balloons.js"></script>
+  <script defer src="js/particles.js"></script>
+  <script defer src="js/countdown.js"></script>
+  <script defer src="js/gallery.js"></script>
+  <script defer src="js/rsvp.js"></script>
+  <script defer src="js/reveal.js"></script>
+  <script defer src="js/music.js"></script>
+  <script defer src="js/main.js"></script>
+
 </body>
 </html>
