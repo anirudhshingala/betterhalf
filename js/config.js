@@ -17,13 +17,26 @@ window.BIRTHDAY_CONFIG = Object.freeze({
   /* ── The date ─────────────────────────────────────────────────────────
      Stored as month/day only, deliberately. countdown.js resolves this to
      the *next* occurrence relative to "now", so the timer keeps working
-     year after year with no edits — and it uses the visitor's own local
-     timezone rather than a fixed UTC instant.                              */
+     year after year with no edits.
+
+     The target is pinned to IST, NOT to the viewer's device clock. That
+     means the countdown reads the same number everywhere — on her phone,
+     on yours, on a laptop left on the wrong timezone, or from abroad — and
+     it unlocks at midnight in India rather than midnight wherever the
+     device happens to think it is.                                        */
   birthday: {
     month: 8,   // 1-indexed: 8 = August
     day: 24,
     hour: 0,    // countdown target = midnight at the start of the birthday
     minute: 0,
+
+    /* IST = UTC+05:30. India has not observed daylight saving since 1945,
+       so a fixed offset is exact — no timezone database needed.
+       For a zone that DOES observe DST, this constant would be wrong for
+       half the year; you'd want Intl.DateTimeFormat with a `timeZone` name
+       instead. Set to null to fall back to the viewer's own clock. */
+    utcOffsetMinutes: 330,
+    tzLabel: 'IST',
   },
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -50,8 +63,11 @@ window.BIRTHDAY_CONFIG = Object.freeze({
        deployed URL. Remember to set it back to `false` before she looks.  */
     bypass: false,
 
-    /* Treat localhost / 127.0.0.1 / file:// as "I am the developer". */
-    bypassOnLocalhost: true,
+    /* Treat localhost / 127.0.0.1 / file:// as "I am the developer".
+       Currently OFF, so the countdown is the only thing showing everywhere
+       — on the live site AND on your own machine. Use ?preview=1 to open
+       the full site when you need to work on it. */
+    bypassOnLocalhost: false,
 
     /* Query-string escape hatch, e.g. …/birthday/?preview=1
        Lets you check the real deployed site on your phone without
@@ -62,6 +78,17 @@ window.BIRTHDAY_CONFIG = Object.freeze({
        FORCES the lock screen even on localhost, so you can see exactly
        what she sees. Overrides bypass and bypassOnLocalhost. */
     forceParam: 'gate',
+
+    /* TEST MODE — currently OFF (null = use the real 24 August date).
+       ─────────────────────────────────────────────────────────────────
+       Set to a number of seconds to make the countdown end that soon after
+       the page loads, so the unlock can be watched instead of waited for.
+       e.g. `60` → one minute from load; reload to run it again.
+
+       ⚠️  Always set it back to null before deploying. Left on, the gate
+       opens shortly after she arrives and the surprise is spent. The
+       browser console warns loudly whenever it is active. */
+    testCountdownSeconds: null,
 
     /* ── Copy for the locked screen ────────────────────────────────────
        Deliberately just one line and the clock. The whole point is that

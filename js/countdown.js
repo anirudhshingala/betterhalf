@@ -39,19 +39,86 @@ window.Countdown = (function () {
    * If today *is* the birthday we return this year's instant (already in the
    * past by definition), which callers detect via a non-positive delta.
    */
-  function nextBirthday(from) {
-    // Readable before start() has run — js/gate.js needs the date maths
-    // during boot, before this module has been initialised.
-    const c = cfg || window.BIRTHDAY_CONFIG.birthday;
-    const y = from.getFullYear();
-    let target = new Date(y, c.month - 1, c.day, c.hour, c.minute, 0, 0);
+  /* ── Timezone ─────────────────────────────────────────────────────────
+     The birthday belongs to a place, not to whatever timezone the viewing
+     device happens to be set to. Everything below therefore works in the
+     celebration's zone (IST) and converts to real instants at the edges,
+     so the clock reads identically on every device on earth.             */
 
-    // Once the whole birthday *day* is over, roll to next year.
-    const endOfBirthday = new Date(y, c.month - 1, c.day, 23, 59, 59, 999);
-    if (from > endOfBirthday) {
-      target = new Date(y + 1, c.month - 1, c.day, c.hour, c.minute, 0, 0);
+  /** Config, readable before start() — gate.js needs the maths during boot. */
+  const conf = () => cfg || window.BIRTHDAY_CONFIG.birthday;
+
+  /** The zone's offset from UTC, in ms. 0 means "use the device's clock". */
+  function offsetMs() {
+    const n = conf().utcOffsetMinutes;
+    return typeof n === 'number' ? n * 60000 : null;
+  }
+
+  /**
+   * The wall-clock calendar date in the celebration's zone for an instant.
+   * Shifting by the offset and then reading the UTC fields gives the local
+   * fields in that zone — no timezone database required.
+   */
+  function zonedParts(date) {
+    const off = offsetMs();
+    if (off === null) {
+      return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() };
     }
-    return target;
+    const shifted = new Date(date.getTime() + off);
+    return {
+      year: shifted.getUTCFullYear(),
+      month: shifted.getUTCMonth() + 1,
+      day: shifted.getUTCDate(),
+    };
+  }
+
+  /** The real instant at which the birthday begins in the given zone-year. */
+  function instantFor(year) {
+    const c = conf();
+    const off = offsetMs();
+    if (off === null) {
+      return new Date(year, c.month - 1, c.day, c.hour, c.minute, 0, 0).getTime();
+    }
+    return Date.UTC(year, c.month - 1, c.day, c.hour, c.minute, 0, 0) - off;
+  }
+
+  /** The last millisecond of the birthday, in the given zone-year. */
+  function endOfBirthday(year) {
+    const c = conf();
+    const off = offsetMs();
+    if (off === null) {
+      return new Date(year, c.month - 1, c.day, 23, 59, 59, 999).getTime();
+    }
+    return Date.UTC(year, c.month - 1, c.day, 23, 59, 59, 999) - off;
+  }
+
+  function nextBirthday(from) {
+    const here = zonedParts(from);
+    // Once the whole birthday *day* is over, roll to next year.
+    const year = from.getTime() > endOfBirthday(here.year) ? here.year + 1 : here.year;
+    return new Date(instantFor(year));
+  }
+
+  /* ── Test override ────────────────────────────────────────────────────
+     BIRTHDAY_CONFIG.gate.testCountdownSeconds makes the timer end that many
+     seconds after the page loads, so the unlock can actually be watched
+     instead of waited for. The target is fixed on first read so it counts
+     down rather than perpetually resetting.                               */
+
+  let testTarget = null;
+
+  function testOverride() {
+    const gate = window.BIRTHDAY_CONFIG.gate;
+    const secs = gate && gate.testCountdownSeconds;
+    if (!secs || typeof secs !== 'number') return null;
+    if (testTarget === null) {
+      testTarget = Date.now() + secs * 1000;
+      console.warn(
+        '[countdown] TEST MODE — unlocking in ' + secs + 's. ' +
+        'Set gate.testCountdownSeconds back to null in js/config.js before going live.'
+      );
+    }
+    return testTarget;
   }
 
   /**
@@ -61,6 +128,8 @@ window.Countdown = (function () {
    */
   function remaining(now) {
     const d = now || new Date();
+    const test = testOverride();
+    if (test !== null) return Math.max(0, test - d.getTime());
     if (isBirthdayToday(d)) return 0;
     return Math.max(0, nextBirthday(d).getTime() - d.getTime());
   }
@@ -75,12 +144,17 @@ window.Countdown = (function () {
     };
   }
 
-  /** True for the whole calendar day of 24 August, in local time. */
+  /** True for the whole calendar day of 24 August **in IST**. */
   function isBirthdayToday(now) {
-    // Readable before start() has run, so main.js can branch on it early.
-    const c = cfg || window.BIRTHDAY_CONFIG.birthday;
     const d = now || new Date();
-    return d.getMonth() === c.month - 1 && d.getDate() === c.day;
+
+    // Under the test override, "the day" simply means the timer has run out.
+    const test = testOverride();
+    if (test !== null) return d.getTime() >= test;
+
+    const c = conf();
+    const p = zonedParts(d);
+    return p.month === c.month && p.day === c.day;
   }
 
   /* ── Rendering ────────────────────────────────────────────────────── */

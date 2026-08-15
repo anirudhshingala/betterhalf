@@ -11,10 +11,10 @@
     "github-pages"
   ],
   "license": "MIT",
-  "comment": "There are no dependencies and no build step. These scripts are convenience wrappers around whichever static server you already have.",
+  "comment": "No dependencies and no build step. Prefer `npm start` — serve.py disables caching, which plain static servers do not, and a cached js/config.js silently serving stale settings is the single most confusing failure mode here.",
   "scripts": {
-    "start": "npx --yes serve . -l 8080",
-    "serve": "npx --yes serve . -l 8080",
-    "start:python": "python -m http.server 8080"
+    "start": "python serve.py 8080",
+    "serve": "python serve.py 8080",
+    "start:node": "npx --yes serve . -l 8080 --no-clipboard"
   }
 }

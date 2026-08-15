@@ -25,29 +25,26 @@ JavaScript — **no build step, no dependencies to install, no framework.**
 
 ## Quick start
 
-You need a local web server — opening `index.html` with a `file://` URL works
-for most of the page, but some browsers block the audio and image loading rules
-under that scheme.
-
-**Python** (installed on most machines):
-
 ```bash
-python -m http.server 8080
-```
-
-**Node**:
-
-```bash
-npx --yes serve . -l 8080
-```
-
-**npm script** (thin wrapper around the Node one):
-
-```bash
-npm start
+python serve.py        # or: npm start
 ```
 
 Then open <http://localhost:8080>.
+
+You need a local web server — opening `index.html` over `file://` works for
+most of the page, but some browsers block audio and image loading under that
+scheme.
+
+> **Use `serve.py`, not `python -m http.server`.** The built-in server answers
+> with `304 Not Modified` and sets no cache directives, so browsers happily
+> reuse a cached `js/config.js` for the rest of the session — you change a
+> setting, reload, and see the old site with nothing obviously wrong to point
+> at. `serve.py` is the same thing with `no-store` on every response.
+>
+> Already hit it? **Ctrl+Shift+R** forces a fresh fetch.
+
+Any static server works if you'd rather (`npx --yes serve . -l 8080`), just
+remember the caching caveat.
 
 ---
 
@@ -180,6 +177,7 @@ raise `balloons.spawnEveryMs`.
 │   └── main.js             # bootstrap + seal/unseal choreography
 ├── assets/
 │   └── README.md           # ← where the photos go
+├── serve.py                # dev server with caching disabled (`npm start`)
 ├── .github/workflows/
 │   └── deploy.yml          # optional GitHub Pages deployment
 ├── .nojekyll               # stop Pages from running Jekyll over the files
