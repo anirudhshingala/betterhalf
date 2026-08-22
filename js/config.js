@@ -124,6 +124,63 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     locationLabel: 'Just me and you',
   },
 
+  /* ── Today's best moment ──────────────────────────────────────────────
+     The one section that fills itself in.
+
+     Drop a photo — any filename, any extension — into ./assets/moments/,
+     commit, push. A moment later it is the centrepiece of the site, dated
+     with the day it went up. Nothing here needs editing to add a photo.
+
+     HOW IT KNOWS: a static host serves assets/moments/whatever.jpg happily
+     but will not tell the browser the file exists — there is no directory
+     listing. So tools/build_moments.py writes assets/moments/manifest.json,
+     and js/moments.js reads that. The script runs on every local page load
+     (serve.py) and on every push (.github/workflows/moments.yml), so the
+     manifest is never stale and never something to remember.
+
+     WHILE THE FOLDER IS EMPTY the manifest lists nothing, js/moments.js
+     returns immediately, the section stays `hidden` and its nav link stays
+     out of the DOM. The site is byte-for-byte what it was before. That is
+     the whole point: no placeholder, no empty frame, no hint it is coming. */
+  moments: {
+    enabled: true,
+
+    /* The watched folder. Everything else is discovered. */
+    dir: 'assets/moments',
+
+    /* Where the section sits on the page.
+         'end'          — last thing before the footer, after the RSVP.
+                          The evening's photo closes the page.
+         'after-story'  — high up, straight after Our Story.
+       The shell lives after Our Story in index.html; js/moments.js moves it
+       when this says otherwise, so there is only ever one of them. */
+    placement: 'end',
+
+    /* Manifest written by tools/build_moments.py. */
+    manifest: 'assets/moments/manifest.json',
+
+    /* The label above the photo. */
+    kicker: 'Today',
+    title: "Today's Best Moment",
+
+    /* Printed under the title. The date badge is added automatically from
+       the commit date, so this line is free to just be a sentence. */
+    lede: 'Of every photo of us, this one is hours old.',
+
+    /* Caption beneath the frame. Applies to a single photo; with several,
+       each gets "One of today" instead. Set to null for no caption. */
+    caption: 'Us, on your birthday.',
+
+    /* Overrides the date on the badge, e.g. '24/08/2026'. Leave null and it
+       uses the day the photo was committed, rendered in IST — which is the
+       right answer whenever the photo goes up on the day it was taken. */
+    dateLabelOverride: null,
+
+    /* Confetti the first time the section scrolls into view. It is the
+       emotional peak of the page; it gets to make a noise. */
+    celebrateOnFirstView: true,
+  },
+
   /* ── The favourite ────────────────────────────────────────────────────
      One photo gets its own stage above the grid, behind a frosted cover
      that she taps to reveal. Set to null to remove the feature entirely.

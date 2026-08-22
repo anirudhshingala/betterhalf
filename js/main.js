@@ -149,6 +149,10 @@
     // Content modules.
     window.Gallery.start();
     window.RSVP.start();
+    // After Gallery (it lends Moments its lightbox) and after RSVP (it lends
+    // Moments its confetti). Fetches a manifest and renders nothing at all
+    // when assets/moments/ is empty, which is every day but the birthday.
+    window.Moments.start();
     window.Music.start();
     window.Reveal.start();
 

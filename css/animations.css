@@ -337,6 +337,141 @@
 
 
 /* ==========================================================================
+   07c. TODAY'S BEST MOMENT
+   --------------------------------------------------------------------------
+   The arrival of the photo, in five overlapping beats:
+
+     0ms     the halo blooms open
+     120ms   the frame rises, unblurs and settles from a slight overshoot
+     620ms   the corner brackets fade in (transition, in main.css)
+     900ms   a single pane of light sweeps across the photo
+     1150ms  the date plaque draws its letter-spacing in
+
+   All of it hangs off `.moment.is-revealed`, the class js/reveal.js adds when
+   the section scrolls into view — so the choreography plays when she gets to
+   it, not while it is still off screen.
+
+   Start states are scoped to `html.js`, matching §01: with JavaScript off the
+   class never arrives, so nothing may be left invisible waiting for it.
+   ========================================================================== */
+
+/* ── The photo ───────────────────────────────────────────────────────────
+   Rises from below, blurred and slightly too large, then settles. The
+   overshoot easing (--ease-out is a back-out curve) makes it land rather
+   than merely stop.                                                        */
+.js .moment__figure {
+  opacity: 0;
+  transform: translateY(26px) scale(0.94);
+  filter: blur(14px);
+  transition:
+    opacity 1000ms var(--ease-out) 120ms,
+    transform 1200ms var(--ease-out) 120ms,
+    filter 1000ms var(--ease-out) 120ms;
+}
+.js .moment.is-revealed .moment__figure {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Ken Burns: an extremely slow drift, so the photo is never quite static.
+   45s and 3% of travel — felt rather than watched. Only once it has landed,
+   so it cannot fight the entrance transform. */
+.js .moment.is-revealed .moment__img {
+  animation: moment-drift 45s var(--ease-soft) 1600ms infinite alternate;
+}
+@keyframes moment-drift {
+  from { transform: scale(1.03) translate(-0.6%, 0.4%); }
+  to   { transform: scale(1.06) translate(0.6%, -0.5%); }
+}
+
+/* ── The halo ────────────────────────────────────────────────────────────
+   Blooms open with the frame, then breathes on a long cycle. Two animations
+   on one element: the bloom runs once, the breathe loops after it.         */
+.js .moment__halo {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.js .moment.is-revealed .moment__halo {
+  animation:
+    moment-halo-bloom 1600ms var(--ease-out) forwards,
+    moment-halo-breathe 9s var(--ease-soft) 1600ms infinite alternate;
+}
+@keyframes moment-halo-bloom {
+  from { opacity: 0;    transform: scale(0.8); }
+  to   { opacity: 0.95; transform: scale(1); }
+}
+@keyframes moment-halo-breathe {
+  from { opacity: 0.78; transform: scale(0.985); }
+  to   { opacity: 1;    transform: scale(1.035); }
+}
+
+/* ── The corner brackets ─────────────────────────────────────────────────
+   The transition itself is in main.css; this only trips it.                */
+.js .moment.is-revealed .moment__frame::before,
+.js .moment.is-revealed .moment__frame::after {
+  opacity: 0.85;
+}
+
+/* ── The light sweep ─────────────────────────────────────────────────────
+   Once on arrival, then every 14s — a slow glint off the foil rather than a
+   repeating effect that draws attention to itself.                         */
+.js .moment.is-revealed .moment__shine {
+  animation: moment-shine 14s var(--ease-soft) 900ms infinite;
+}
+@keyframes moment-shine {
+  /* The sweep occupies the first ~13% of the cycle; the rest is stillness. */
+  0%        { transform: translateX(-160%) rotate(18deg); opacity: 0; }
+  2%        {                                             opacity: 1; }
+  11%       {                                             opacity: 1; }
+  13%, 100% { transform: translateX(320%) rotate(18deg);  opacity: 0; }
+}
+
+/* The foil edge keeps shifting, like the invitation card. */
+.js .moment.is-revealed .moment__frame {
+  animation: moment-foil 14s var(--ease-soft) infinite alternate;
+}
+@keyframes moment-foil {
+  from { background-position: 0% 0%, 0% 50%; }
+  to   { background-position: 0% 0%, 100% 50%; }
+}
+
+/* ── The date plaque ────────────────────────────────────────────────────
+   The rules grow out from the date, and the date settles its own tracking.
+   Both land last, so the eye reaches the date after the photo.             */
+.js .moment__stamp-rule {
+  transform: scaleX(0);
+  transition: transform 900ms var(--ease-out) 1150ms;
+}
+.js .moment.is-revealed .moment__stamp-rule { transform: scaleX(1); }
+
+.js .moment__stamp-date {
+  opacity: 0;
+  letter-spacing: 0.65em;
+  transition:
+    opacity 900ms var(--ease-out) 1150ms,
+    letter-spacing 1100ms var(--ease-out) 1150ms;
+}
+.js .moment.is-revealed .moment__stamp-date {
+  opacity: 1;
+  letter-spacing: 0.3em;
+}
+
+/* ── The caption ─────────────────────────────────────────────────────── */
+.js .moment__caption {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 900ms var(--ease-out) 1400ms,
+    transform 900ms var(--ease-out) 1400ms;
+}
+.js .moment.is-revealed .moment__caption {
+  opacity: 1;
+  transform: none;
+}
+
+
+/* ==========================================================================
    08. OVERLAYS
    ========================================================================== */
 .modal:not([hidden]) .modal__scrim { animation: fade-in 260ms var(--ease-out); }
@@ -422,4 +557,27 @@
   #particle-canvas { display: none; }
 
   .btn--pulse::after { display: none; }
+
+  /* The moment keeps its frame, its halo and its date — it just stops
+     moving. Zeroing the durations above would otherwise strand the Ken Burns
+     drift on its end transform (a permanently over-zoomed photo) and leave
+     the light sweep parked mid-frame. */
+  .moment__img,
+  .moment__frame { animation: none !important; }
+  .moment__shine { display: none; }
+  .moment__halo {
+    animation: none !important;
+    opacity: 0.9;
+    transform: none;
+  }
+  .moment__figure,
+  .moment__caption,
+  .moment__stamp-date {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .moment__stamp-rule { transform: none !important; }
+  .moment__frame::before,
+  .moment__frame::after { opacity: 0.85; }
 }

@@ -1251,6 +1251,254 @@ body.is-locked .skip-link { display: none; }
 
 
 /* ==========================================================================
+   09b. TODAY'S BEST MOMENT
+   --------------------------------------------------------------------------
+   The section that fills itself in: one photo dropped into assets/moments/
+   becomes the centrepiece of the page. Built by js/moments.js; the entrance
+   choreography lives in animations.css §07c.
+
+   Deliberately the heaviest treatment on the site — a wider stage than the
+   favourite, a thicker foil edge, corner brackets, a breathing halo and a
+   date plaque. Nothing else on the page changes when it arrives; this block
+   only ever ADDS.
+   ========================================================================== */
+.section--moment {
+  /* A touch more air than a normal section: the photo needs room to land. */
+  padding-block: calc(var(--section-pad) * 1.15);
+}
+
+/* A pool of warm light under the whole section, so the moment reads as lit
+   rather than simply placed. Behind everything, never catches a click. */
+.section--moment::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 46% at 50% 42%, rgba(255, 143, 171, 0.13), transparent 70%),
+    radial-gradient(46% 38% at 50% 58%, rgba(212, 175, 55, 0.10), transparent 72%);
+}
+
+.moment {
+  position: relative;
+  /* Wider than .favourite (26rem) — this one is allowed to dominate, but is
+     still capped so a portrait phone photo cannot run past the fold. */
+  max-width: min(100%, 32rem);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.moment__figure {
+  position: relative;
+  /* Keep the whole moment inside one screen even for a tall portrait straight
+     off a phone: cap the height at 68vh and let the photo's own aspect ratio
+     decide the width. Capping the height directly would fight object-fit and
+     crop the photo, which this section must never do.
+
+     --moment-ratio is w/h, set inline by js/moments.js from the manifest; the
+     0.8 fallback is the 4/5 the frame assumes before the file has loaded. */
+  max-width: min(100%, calc(68vh * var(--moment-ratio, 0.8)));
+  margin: 0 auto;
+}
+
+/* ── The halo ─────────────────────────────────────────────────────────────
+   A soft aura bleeding out past the frame. Larger than the frame on purpose,
+   and animated in animations.css so it breathes very slowly.               */
+.moment__halo {
+  position: absolute;
+  /* Bleeds outside the frame; the negative z-index keeps it under the photo. */
+  inset: -18% -14%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, rgba(255, 143, 171, 0.30), transparent 78%),
+    radial-gradient(closest-side, rgba(212, 175, 55, 0.22), transparent 82%);
+  filter: blur(26px);
+}
+
+/* ── The frame ───────────────────────────────────────────────────────────
+   The same gradient-ring technique as the gallery tiles and the favourite,
+   two steps heavier: a 3px foil edge, a deep shadow and a real glow.       */
+.moment__frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  /* Fallback only. js/moments.js overwrites this inline with the photo's own
+     ratio from the manifest, so the moment is never cropped. */
+  aspect-ratio: 4 / 5;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(var(--midnight-2), var(--midnight-2)) padding-box,
+    var(--grad-gold) border-box;
+  background-size: 200% 200%, 200% 200%;
+  box-shadow:
+    var(--shadow-lg),
+    0 0 70px rgba(212, 175, 55, 0.30),
+    0 0 120px rgba(255, 143, 171, 0.16);
+}
+
+.moment__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Corner brackets: four hairlines that fade in as the photo settles, framing
+   it like something mounted rather than pasted on. */
+.moment__frame::before,
+.moment__frame::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  width: 26%;
+  height: 26%;
+  border: 0 solid var(--gold-soft);
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out) 620ms;
+}
+.moment__frame::before {
+  top: 10px; left: 10px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 8px;
+}
+.moment__frame::after {
+  bottom: 10px; right: 10px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: 8px;
+}
+
+/* The light sweep: a pane of gold that crosses the photo on arrival, then
+   again every so often — see animations.css §07c. */
+.moment__shine {
+  position: absolute;
+  top: -60%;
+  left: 0;
+  z-index: 1;
+  width: 45%;
+  height: 220%;
+  pointer-events: none;
+  transform: translateX(-160%) rotate(18deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(253, 246, 238, 0.30) 45%,
+    rgba(243, 217, 152, 0.42) 55%,
+    transparent
+  );
+  mix-blend-mode: screen;
+}
+
+/* Opens full size once the file has actually loaded (js/moments.js adds
+   .is-interactive), matching the favourite's affordance. */
+.moment__frame.is-interactive { cursor: zoom-in; }
+.moment__frame.is-interactive:hover {
+  box-shadow:
+    var(--shadow-lg),
+    0 0 88px rgba(212, 175, 55, 0.40),
+    0 0 150px rgba(255, 143, 171, 0.22);
+}
+
+/* ── The date plaque ─────────────────────────────────────────────────────
+   Gold rule, the date, gold rule. The date comes from the photo's commit day
+   in IST unless config overrides it, so it is right without being set.     */
+.moment__stamp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.6rem, 2.2vw, 1rem);
+  margin-top: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.moment__stamp-rule {
+  flex: 1 1 auto;
+  max-width: 4.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.moment__stamp-date {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+  letter-spacing: 0.3em;
+  /* Letter-spacing leaves a trailing gap after the last character; pull it
+     back so the date sits optically centred between its two rules. */
+  text-indent: 0.3em;
+  color: var(--gold-soft);
+  white-space: nowrap;
+}
+
+.moment__caption {
+  margin-top: clamp(0.7rem, 2vw, 1rem);
+  font-family: var(--font-script);
+  font-size: clamp(1.5rem, 4.6vw, 2.15rem);
+  line-height: 1.35;
+  color: var(--blush);
+}
+
+/* ── Any further photos from the same day ────────────────────────────────
+   One photo is the expected case. If several go into the folder they all
+   belong here — smaller, below, each opening in the same lightbox.        */
+.moment__more {
+  margin-top: clamp(1.8rem, 5vw, 2.6rem);
+}
+
+.moment__more-label {
+  margin-bottom: 0.85rem;
+  font-size: clamp(0.6rem, 1.7vw, 0.7rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.moment__thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 0.85rem);
+}
+
+.moment__thumb {
+  width: clamp(4.2rem, 17vw, 5.6rem);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  padding: 0;
+  cursor: zoom-in;
+  /* Faded until the file resolves, so a thumb never flashes as an empty box. */
+  opacity: 0;
+  transition:
+    opacity 500ms var(--ease-out),
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+.moment__thumb.is-loaded { opacity: 1; }
+.moment__thumb:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: var(--shadow-md), 0 0 22px rgba(212, 175, 55, 0.28);
+}
+.moment__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Narrow phones: the stage takes the full width and the brackets tuck in. */
+@media (max-width: 26rem) {
+  .moment { max-width: 100%; }
+  .moment__frame::before { top: 7px; left: 7px; }
+  .moment__frame::after { bottom: 7px; right: 7px; }
+}
+
+
+/* ==========================================================================
    10. INVITATION CARD
    ========================================================================== */
 .invite {

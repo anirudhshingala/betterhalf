@@ -10,7 +10,7 @@
  * no getBoundingClientRect in a loop). The progress bar does need scroll
  * position, so it is throttled to one write per animation frame.
  *
- * Public API: window.Reveal.{ start, refresh }
+ * Public API: window.Reveal.{ start, refresh, refreshNav }
  */
 
 window.Reveal = (function () {
@@ -139,6 +139,11 @@ window.Reveal = (function () {
     const nav = $('#section-nav');
     if (!nav || !('IntersectionObserver' in window)) return;
 
+    // Rebuilt from scratch on every call so it can be re-run after a link is
+    // added late — js/moments.js only knows whether it has a nav entry once
+    // the manifest has come back over the network, which is after start().
+    if (navObserver) navObserver.disconnect();
+
     const links = $$('a[data-nav]', nav);
     const byId = {};
     links.forEach((a) => { byId[a.dataset.nav] = a; });
@@ -170,5 +175,5 @@ window.Reveal = (function () {
     initNav();
   }
 
-  return { start, refresh };
+  return { start, refresh, refreshNav: initNav };
 })();

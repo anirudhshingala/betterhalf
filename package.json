@@ -15,6 +15,8 @@
   "scripts": {
     "start": "python serve.py 8080",
     "serve": "python serve.py 8080",
-    "start:node": "npx --yes serve . -l 8080 --no-clipboard"
+    "start:node": "npx --yes serve . -l 8080 --no-clipboard",
+    "moments": "python tools/build_moments.py",
+    "moments:check": "python tools/build_moments.py --check"
   }
 }

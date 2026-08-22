@@ -27,6 +27,14 @@ from pathlib import Path
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 ROOT = Path(__file__).resolve().parent
 
+# tools/build_moments.py turns assets/moments/ into the manifest the page reads.
+# Imported rather than shelled out to, so a request costs no process spawn.
+sys.path.insert(0, str(ROOT / "tools"))
+try:
+    import build_moments
+except ImportError:      # tools/ missing — the rest of the site still serves
+    build_moments = None
+
 # On Windows the console defaults to cp1252, which cannot encode characters
 # outside Latin-1. Printing anything fancier then raises UnicodeEncodeError
 # and takes the whole server down before it serves a single request — so
@@ -41,6 +49,20 @@ for _stream in (sys.stdout, sys.stderr):
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
     """Serves the site with caching disabled."""
+
+    def do_GET(self):
+        # Rebuild the moments manifest the instant the page asks for it, so
+        # dropping a photo into assets/moments/ and hitting reload is enough —
+        # no restarting the server, no build step to remember. In production
+        # the same script runs in CI instead (see .github/workflows/moments.yml).
+        if build_moments and self.path.split("?")[0].endswith(
+            "/assets/moments/manifest.json"
+        ):
+            try:
+                build_moments.main()
+            except Exception as exc:   # never let a bad photo 500 the page
+                print("  moments: build failed - %s" % exc)
+        super().do_GET()
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")

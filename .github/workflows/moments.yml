@@ -1,0 +1,111 @@
+# ==============================================================================
+# Publish a photo dropped into assets/moments/
+# ------------------------------------------------------------------------------
+# WHY THIS EXISTS
+#   A static host serves assets/moments/IMG_4821.jpg happily but never lists
+#   the directory, so the browser has no way to discover the file. The site
+#   reads assets/moments/manifest.json instead, and this job writes it.
+#
+#   Locally serve.py regenerates the manifest on every page load, so this
+#   workflow is what covers every other route in: uploading from a phone
+#   through the GitHub web UI, committing without running the server, or
+#   pushing from any other machine.
+#
+# WHY IT COMMITS BACK
+#   Pages for this repository publishes straight from the main branch
+#   (Settings > Pages > Deploy from a branch), so anything the live site needs
+#   has to exist as a committed file. The manifest is therefore committed here
+#   rather than injected into a build artifact.
+#
+# WHY THAT DOES NOT LOOP
+#   This job pushes to assets/moments/, which matches its own path filter, so
+#   it does trigger itself exactly once more. That second run regenerates a
+#   byte-identical manifest, finds nothing to commit, and stops. The guard is
+#   in tools/build_moments.py, which only rewrites the file when the content
+#   actually changes.
+# ==============================================================================
+
+name: Publish today's moment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/moments/**'
+      - 'tools/build_moments.py'
+  # Lets you rebuild the manifest by hand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One at a time. Two of these racing would both try to push a manifest.
+concurrency:
+  group: moments
+  cancel-in-progress: false
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # Full history: tools/build_moments.py dates each photo by the commit
+          # that added it, which a depth-1 clone cannot see.
+          fetch-depth: 0
+
+      # A photo taken on an iPhone is very often HEIC, which Chrome and Firefox
+      # cannot decode — it would show as a broken frame on the one section that
+      # is meant to be beautiful. ImageMagick is preinstalled on the runner.
+      # The original is kept; build_moments.py skips a HEIC once its converted
+      # twin exists, so the manifest lists only the JPEG.
+      - name: Convert any HEIC/HEIF to JPEG
+        run: |
+          shopt -s nullglob nocaseglob
+          converted=0
+          for src in assets/moments/*.heic assets/moments/*.heif; do
+            out="${src%.*}.jpg"
+            if [ -f "$out" ]; then
+              echo "  skip (already converted): $src"
+              continue
+            fi
+            echo "  converting: $src -> $out"
+            # -auto-orient bakes in the EXIF rotation, so a photo taken
+            # sideways is not published sideways.
+            if convert "$src" -auto-orient -quality 92 "$out"; then
+              converted=$((converted + 1))
+            else
+              echo "::warning::could not convert $src"
+            fi
+          done
+          echo "converted $converted file(s)"
+
+      - name: Build the manifest
+        run: python3 tools/build_moments.py
+
+      - name: Commit anything new
+        run: |
+          if [ -z "$(git status --porcelain assets/moments)" ]; then
+            echo "Nothing changed - manifest already matches the folder."
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add assets/moments
+          git commit -m "Publish today's moment"
+
+          # Someone may have pushed while this ran; rebase rather than fail.
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Today's moment" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat assets/moments/manifest.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

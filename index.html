@@ -251,6 +251,29 @@
       </section>
 
       <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 2b — TODAY'S BEST MOMENT
+           ══════════════════════════════════════════════════════════════════
+           The one section that fills itself in. A photo dropped into
+           assets/moments/ (any filename, any extension) becomes the
+           centrepiece of the page, dated with the day it went up.
+
+           It is `hidden` here and stays hidden: js/moments.js only unwraps it
+           if assets/moments/manifest.json actually lists a photo. While the
+           folder is empty this element has no layout, no nav link and makes
+           no requests — the page is exactly what it was before.
+
+           Everything inside is built by js/moments.js from BIRTHDAY_CONFIG
+           .moments, so adding the photo is the only step. Sits here, straight
+           after the story, because the story ending with *today* is the point
+           — and because the hero's button must still land on "Our Story".
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="moments" class="section section--moment" aria-labelledby="moments-title" hidden>
+        <div class="section__inner">
+          <div id="moments-stage" class="moment" data-reveal></div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
            SECTION 3 — LIVE COUNTDOWN
            ══════════════════════════════════════════════════════════════════ -->
       <section id="countdown" class="section" aria-labelledby="countdown-title">
@@ -516,6 +539,7 @@
   <script defer src="js/countdown.js"></script>
   <script defer src="js/gallery.js"></script>
   <script defer src="js/rsvp.js"></script>
+  <script defer src="js/moments.js"></script>
   <script defer src="js/reveal.js"></script>
   <script defer src="js/music.js"></script>
   <script defer src="js/main.js"></script>

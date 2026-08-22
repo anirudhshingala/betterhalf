@@ -9,7 +9,7 @@
  * gold-hatched placeholder printing the exact filename it is waiting for — so
  * the section looks deliberate on day one and self-documents how to fill it.
  *
- * Public API: window.Gallery.start()
+ * Public API: window.Gallery.{ start, adopt }
  */
 
 window.Gallery = (function () {
@@ -328,6 +328,35 @@ window.Gallery = (function () {
 
   /* ── Public API ───────────────────────────────────────────────────── */
 
+  /**
+   * Lend the lightbox to another module.
+   *
+   * js/moments.js has a photo that belongs in the same viewer — same scrim,
+   * same arrows, same focus trap, same Escape key. Rather than grow a second
+   * lightbox that has to be kept in visual sync, it hands the entry over here
+   * and gets back the two calls it needs. The entry lands at the end of the
+   * rotation, so paging order still matches reading order down the page.
+   *
+   * @param {{src: string, caption?: string}} entry
+   * @returns {{markReady: function, open: function}}
+   */
+  function adopt(entry) {
+    const index = items.length;
+    items.push(entry);
+
+    return {
+      // Called once the file has actually loaded. Until then the entry stays
+      // out of `loaded`, so a missing photo can never open a blank lightbox.
+      markReady: function () {
+        if (loaded.indexOf(index) === -1) {
+          loaded.push(index);
+          loaded.sort((a, b) => a - b);
+        }
+      },
+      open: function () { openLightbox(index); },
+    };
+  }
+
   function start() {
     grid = $('#gallery-grid');
     if (!grid) return;
@@ -359,5 +388,5 @@ window.Gallery = (function () {
     bindLightbox();
   }
 
-  return { start };
+  return { start, adopt };
 })();
