@@ -124,6 +124,48 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     locationLabel: 'Just me and you',
   },
 
+  /* ── The knock at the door ────────────────────────────────────────────
+     A section that exists for a few hours and then removes itself.
+
+     It appears the moment the site unlocks — midnight IST on the birthday —
+     and disappears `windowHours` later. "Someone is waiting at your door" is
+     true at midnight and embarrassing by breakfast, so it is deliberately not
+     allowed to outlive the moment it describes.
+
+     The window is pinned to IST via the same maths as the countdown, so it
+     opens at midnight in India rather than midnight on her device's clock.
+
+     It sits directly above the moment block at the end of the page: the two
+     are one story in order — open the door, then the photo of who was there.
+
+     On localhost it simply shows (see bypassOnLocalhost below). */
+  door: {
+    enabled: true,
+
+    /* How long it stays up, in hours, counted from midnight IST.
+       3 = visible from 12:00am to 3:00am IST. */
+    windowHours: 3,
+
+    emoji: '🚪',
+    kicker: 'Right now',
+    title: 'There is someone waiting for you at your door now',
+    line: 'Go ahead and Open it.',
+
+    /* Treat localhost / 127.0.0.1 / file:// as "I am the developer" and show
+       the block regardless of the clock, so plain http://localhost:8080/
+       shows it with no query string to remember.
+
+       This is a HOSTNAME test, so it can never affect the live site — the
+       real domain always gets the true midnight-to-3am IST window. Same
+       switch, and the same host check, as gate.bypassOnLocalhost. */
+    bypassOnLocalhost: true,
+
+    /* Query-string override, e.g. …/?door=1 forces it open on the real site,
+       …/?door=0 forces it shut so the ordinary state can be checked locally.
+       Wins over bypassOnLocalhost. Set to null to disable. */
+    forceParam: 'door',
+  },
+
   /* ── Today's best moment ──────────────────────────────────────────────
      The one section that fills itself in.
 
@@ -149,11 +191,11 @@ window.BIRTHDAY_CONFIG = Object.freeze({
     dir: 'assets/moments',
 
     /* Where the section sits on the page.
-         'end'          — last thing before the footer, after the RSVP.
-                          The evening's photo closes the page.
+         'end'          — last thing before the footer, directly under the
+                          door block. The evening's photo closes the page.
          'after-story'  — high up, straight after Our Story.
-       The shell lives after Our Story in index.html; js/moments.js moves it
-       when this says otherwise, so there is only ever one of them. */
+       'end' is where index.html already puts it; js/moments.js only moves it
+       for the other value, so there is only ever one of them. */
     placement: 'end',
 
     /* Manifest written by tools/build_moments.py. */

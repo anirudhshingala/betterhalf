@@ -813,6 +813,94 @@ body.is-locked .skip-link { display: none; }
 
 
 /* ==========================================================================
+   07b. THE KNOCK AT THE DOOR
+   --------------------------------------------------------------------------
+   Alive for three hours after midnight, then removed by js/door.js. Built to
+   read at a glance in the dark, on a phone, half-awake: a porch light, one
+   line, and an instruction. The knock animation is in animations.css §07d.
+   ========================================================================== */
+.section--door {
+  /* Tighter than a normal section. It is an interruption, not a chapter, and
+     it must not push the story a whole screen further away. */
+  padding-block: clamp(3rem, 8vh, 5.5rem);
+}
+
+/* The porch light: a warm pool spilling from above, brighter than the
+   moment's halo because this one is meant to catch the eye immediately. */
+.section--door::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(52% 40% at 50% 22%, rgba(243, 217, 152, 0.20), transparent 72%),
+    radial-gradient(40% 34% at 50% 30%, rgba(255, 143, 171, 0.12), transparent 76%);
+}
+
+.door__inner {
+  position: relative;
+  text-align: center;
+}
+
+/* The door itself, with a doorbell ring pulsing out behind it. */
+.door__knocker {
+  position: relative;
+  display: inline-block;
+  font-size: clamp(3.2rem, 11vw, 5rem);
+  line-height: 1;
+  /* The emoji sits optically high; nudge it onto the same baseline as the
+     ring so the pulse is concentric with the door rather than the glyph box. */
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+
+.door__knocker::before,
+.door__knocker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.35em;
+  height: 1.35em;
+  margin: -0.675em 0 0 -0.675em;
+  border-radius: 50%;
+  border: 2px solid var(--gold-soft);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.door__kicker {
+  margin-top: clamp(0.9rem, 2.6vw, 1.4rem);
+  font-size: clamp(0.6rem, 1.8vw, 0.72rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.door__title {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  /* Large, but a size down from a section title: this is a sentence to read,
+     not a heading to admire. */
+  font-size: clamp(1.6rem, 5.2vw, 2.9rem);
+  line-height: 1.24;
+  color: var(--cream);
+  /* Keeps the sentence to a comfortable two or three lines at any width. */
+  max-width: 30ch;
+  margin-inline: auto;
+  text-wrap: balance;
+}
+
+.door__line {
+  margin-top: clamp(0.8rem, 2.4vw, 1.15rem);
+  font-family: var(--font-script);
+  font-size: clamp(1.7rem, 5.6vw, 2.6rem);
+  line-height: 1.3;
+  color: var(--blush);
+}
+
+
+/* ==========================================================================
    08. COUNTDOWN
    ========================================================================== */
 .countdown {

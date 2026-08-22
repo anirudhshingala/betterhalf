@@ -251,29 +251,6 @@
       </section>
 
       <!-- ══════════════════════════════════════════════════════════════════
-           SECTION 2b — TODAY'S BEST MOMENT
-           ══════════════════════════════════════════════════════════════════
-           The one section that fills itself in. A photo dropped into
-           assets/moments/ (any filename, any extension) becomes the
-           centrepiece of the page, dated with the day it went up.
-
-           It is `hidden` here and stays hidden: js/moments.js only unwraps it
-           if assets/moments/manifest.json actually lists a photo. While the
-           folder is empty this element has no layout, no nav link and makes
-           no requests — the page is exactly what it was before.
-
-           Everything inside is built by js/moments.js from BIRTHDAY_CONFIG
-           .moments, so adding the photo is the only step. Sits here, straight
-           after the story, because the story ending with *today* is the point
-           — and because the hero's button must still land on "Our Story".
-           ══════════════════════════════════════════════════════════════════ -->
-      <section id="moments" class="section section--moment" aria-labelledby="moments-title" hidden>
-        <div class="section__inner">
-          <div id="moments-stage" class="moment" data-reveal></div>
-        </div>
-      </section>
-
-      <!-- ══════════════════════════════════════════════════════════════════
            SECTION 3 — LIVE COUNTDOWN
            ══════════════════════════════════════════════════════════════════ -->
       <section id="countdown" class="section" aria-labelledby="countdown-title">
@@ -475,6 +452,54 @@
         </div>
       </section>
 
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 7 — THE KNOCK AT THE DOOR
+           ══════════════════════════════════════════════════════════════════
+           Alive for a few hours only: from midnight IST, when the site
+           unlocks, until three hours later. js/door.js decides, from the same
+           IST clock as the countdown, and removes this element outright once
+           the window has passed — a message about someone waiting at the door
+           must not still be here in the morning.
+
+           Paired with the moment block that follows it, because the two are
+           the same story in order: go and open the door, and the photo of who
+           was standing there appears directly below.
+
+           A plain block in the flow — nothing links to it and it has no nav
+           dot, so on every other day the page reads exactly as before.
+
+           Starts `hidden`; js/door.js is the only thing that reveals it.
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="door" class="section section--door" aria-labelledby="door-title" hidden>
+        <div class="section__inner section__inner--narrow">
+          <div class="door__inner" data-reveal></div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════════════
+           SECTION 8 — TODAY'S BEST MOMENT
+           ══════════════════════════════════════════════════════════════════
+           The one section that fills itself in. A photo dropped into
+           assets/moments/ (any filename, any extension) becomes the
+           centrepiece of the page, dated with the day it went up.
+
+           It is `hidden` here and stays hidden: js/moments.js only unwraps it
+           if assets/moments/manifest.json actually lists a photo. While the
+           folder is empty this element has no layout, no nav link and makes
+           no requests — the page is exactly what it was before.
+
+           Everything inside is built by js/moments.js from BIRTHDAY_CONFIG
+           .moments, so adding the photo is the only step. Last thing before
+           the footer, directly under the door block: she is told to open the
+           door, and the photo of that moment closes the page.
+           ══════════════════════════════════════════════════════════════════ -->
+      <section id="moments" class="section section--moment" aria-labelledby="moments-title" hidden>
+        <div class="section__inner">
+          <div id="moments-stage" class="moment" data-reveal></div>
+        </div>
+      </section>
+
       <footer class="footer">
         <p class="footer__line">
           Made with far too much love &mdash; for
@@ -539,6 +564,7 @@
   <script defer src="js/countdown.js"></script>
   <script defer src="js/gallery.js"></script>
   <script defer src="js/rsvp.js"></script>
+  <script defer src="js/door.js"></script>
   <script defer src="js/moments.js"></script>
   <script defer src="js/reveal.js"></script>
   <script defer src="js/music.js"></script>

@@ -253,22 +253,18 @@ window.Moments = (function () {
   /**
    * Put the section where config asks for it.
    *
-   * The shell is authored after Our Story in index.html, so moving it is only
-   * needed for the other placements. Done before the section is revealed, so
-   * she never sees it jump.
+   * The shell is authored at the end of the story in index.html, which is the
+   * default, so only the other placement needs a move. Done before the
+   * section is revealed, so she never sees it jump.
    */
   function place(cfg, section) {
-    if (cfg.placement !== 'end') return;
+    // 'end' is where the shell already lives in index.html — the last thing
+    // in the story, after the door block and above the footer. Nothing to do.
+    if (cfg.placement !== 'after-story') return;
 
-    // Last thing in the story, after the RSVP but still above the footer.
-    const footer = $('.footer');
-    if (footer && footer.parentNode) {
-      footer.parentNode.insertBefore(section, footer);
-      // The RSVP carries .section--last for its extra bottom padding; that
-      // job now belongs to this section instead.
-      const rsvp = $('#rsvp');
-      if (rsvp) rsvp.classList.remove('section--last');
-      section.classList.add('section--last');
+    const story = $('#our-story');
+    if (story && story.parentNode) {
+      story.parentNode.insertBefore(section, story.nextSibling);
     }
   }
 

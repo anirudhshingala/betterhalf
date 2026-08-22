@@ -25,3 +25,9 @@ package-lock.json
 
 # NOTE: assets/ is intentionally NOT ignored.
 # The photos have to be committed for GitHub Pages to serve them.
+
+# ── Python bytecode ─────────────────────────────────────────────────────────
+# serve.py imports tools/build_moments.py, so running the dev server creates
+# tools/__pycache__/. One of these was committed by accident in b222d0a.
+__pycache__/
+*.py[cod]

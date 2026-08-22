@@ -19,7 +19,7 @@
  * ⚠️  A client-side surprise, not a security boundary. Anyone with devtools
  * can unlock it early. Appropriate for a birthday gift; not for secrets.
  *
- * Public API: window.Gate.{ start, isLocked, unlock }
+ * Public API: window.Gate.{ start, isLocked, unlock, isLocalHost }
  */
 
 window.Gate = (function () {
@@ -247,5 +247,7 @@ window.Gate = (function () {
 
   const isLocked = () => locked;
 
-  return { start, isLocked, unlock };
+  // Exported so js/door.js can ask the same question rather than keeping a
+  // second, drifting copy of what counts as a developer machine.
+  return { start, isLocked, unlock, isLocalHost };
 })();

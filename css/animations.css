@@ -337,6 +337,39 @@
 
 
 /* ==========================================================================
+   07d. THE KNOCK AT THE DOOR
+   --------------------------------------------------------------------------
+   Two loops: the door gives a small double-knock, and a doorbell ring pulses
+   out from behind it. Both are slow and on a long cycle — this section is up
+   for three hours in the middle of the night and must not become irritating.
+   ========================================================================== */
+
+/* A double-knock every 4s: two quick tilts, then a long rest. */
+.js .door__inner.is-revealed .door__knocker {
+  animation: door-knock 4s var(--ease-soft) 700ms infinite;
+  transform-origin: 50% 85%;
+}
+@keyframes door-knock {
+  0%, 62%, 100% { transform: rotate(0deg) scale(1); }
+  66%           { transform: rotate(-7deg) scale(1.04); }
+  70%           { transform: rotate(5deg)  scale(1.04); }
+  74%           { transform: rotate(-5deg) scale(1.03); }
+  78%           { transform: rotate(3deg)  scale(1.02); }
+  82%           { transform: rotate(0deg)  scale(1); }
+}
+
+/* Two rings expanding out, offset so they read as a repeating doorbell
+   rather than a single ping. */
+.js .door__inner.is-revealed .door__knocker::before { animation: door-ring 4s var(--ease-out) 700ms infinite; }
+.js .door__inner.is-revealed .door__knocker::after  { animation: door-ring 4s var(--ease-out) 1100ms infinite; }
+@keyframes door-ring {
+  0%       { opacity: 0.55; transform: scale(0.7); }
+  /* The ring is gone by 45%, leaving the rest of the cycle quiet. */
+  45%, 100% { opacity: 0;   transform: scale(1.9); }
+}
+
+
+/* ==========================================================================
    07c. TODAY'S BEST MOMENT
    --------------------------------------------------------------------------
    The arrival of the photo, in five overlapping beats:
@@ -580,4 +613,11 @@
   .moment__stamp-rule { transform: none !important; }
   .moment__frame::before,
   .moment__frame::after { opacity: 0.85; }
+
+  /* The door stays, and stays readable — it just stops knocking. The rings
+     would otherwise be frozen mid-expansion at whatever the zeroed duration
+     left behind. */
+  .door__knocker { animation: none !important; transform: none !important; }
+  .door__knocker::before,
+  .door__knocker::after { display: none; }
 }

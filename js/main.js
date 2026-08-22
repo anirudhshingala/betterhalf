@@ -147,6 +147,10 @@
     window.Particles.start();
 
     // Content modules.
+    // A plain block in the page flow: it shows itself for the few hours after
+    // midnight IST and removes itself afterwards. Nothing links to it and no
+    // other module depends on it.
+    window.Door.start();
     window.Gallery.start();
     window.RSVP.start();
     // After Gallery (it lends Moments its lightbox) and after RSVP (it lends
